@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	
+<script>
+/*
+	Javascript 面向对象学习
+
+	- 闭包
+		- 全局变量可能被污染
+		- 如果希望重用变量,又要保护变量不被污染 , 需要使用闭包
+		- 闭包写法 
+			- 1.用外层函数包裹受保护的变量和操作变量的内层函数
+			- 2.外层函数将内内层函数返回
+			- 3.使用者调用外层函数,获得内层函数的对象
+		- 缺点
+			- 消耗更多的内存	
+		- case {
+				// 外层函数
+				function outFun(){
+					// 保护的变量
+					var i = 1;
+					// 获得内存函数的对象
+					return function(){
+						console.log(i++);
+					}
+				}
+				var Result = outFun();
+				Result();	//1
+				var i = 1;
+				Result();	//2
+
+				// Case 2 
+				function outer(){
+					var n = 99;
+					// 内部定义一个全局变量函数
+					nAdd= function(){
+						n++;
+					}
+					return function(){
+						console.log(n);
+					}
+				}
+				var getN = outer();
+				getN();	//99
+				// 执行全局变量
+				nAdd();	//n++
+				// 读出的是全局变量
+				getN(); //100
+
+				// Case3 
+				function fun(){
+					for(var i = 0,arr=[];i<3;i++){
+						arr[i] = function(){
+							console.log(i);
+						}
+						return arr;
+					}
+				}
+				var funs = fun();
+				funs[0]();	// 0
+				funs[1]();	// 报错
+				funs[2]();	// 报错
+			}
+
+	- 错误处理 
+		- 即使发生错误,也能保证程序不异常中断
+		- 错误对象
+			- 1. SyntaxError:语法错误
+			- 2. ReferenceError:引用错误,要的变量没找到
+			- 3. TypeError:类型错误 , 把变量当方法使用, 把方法当变量使用
+				- 1.错误的使用了类型
+				- 2.错误的调用了类型的方法
+			- 4. RangeError:范围错误 , 参数超范围
+		- 主动抛出错误
+			- 为了协助开发,为了保护代码,为了提醒使用代码的开发者
+			- throw new Error('...')	
+		- case {
+
+			// parseFloat() 函数可解析一个字符串，并返回一个浮点数。
+			var num = parseFloat(prompt('输入数字'));
+			// parseInt() 函数可解析一个字符串，并返回一个整数。
+			var d= parseInt(prompt('输入小数位数'));
+			// toFixed() 方法可把 Number 四舍五入为指定小数位数的数字。
+			try{
+				// 尝试这个代码
+				var r = num.toFixed(d);
+			}catch(err){
+				// 如果出错打印出来
+				console.log(err);
+			}finally {
+				console.log('释放资源');
+			}
+			// 并不会影响这段代码的执行
+			document.write("正常结束");
+
+			// Case2 TypeError
+			var a = 10;
+			a(); // 报错TypeError
+
+			// Case3 抛出错误
+			function add(a,b){
+				if(!isNaN(a) && !isNaN(b)){
+					return parseInt(a)+parseInt(b);
+				}else {
+					throw new Error('参数必须是数字');
+				}
+			}
+			var x = 'asdfs';
+			var y = 'ffff';
+			add(x,y);
+		}
+
+	- 重载 overLoad 
+		- 相同函数名 , 不同参数 , 使用函数也不相同	
+		- Java 可以使用重载 , 但是Js 不支持
+		- 解决js不支持重载 , argument
+		- arguments
+			- 1.每个函数自带 arguments
+			- 2.传入的参数值是 类数组对象 , 是对象
+			- 3.类数组 与 数组相同点 :
+				- 1.都有下标
+				- 2.length
+			- 4.类数组 与 数组不同点:
+				- 1.arguments是对象类型
+				- 2.数组是Array 
+				- 3.不能互用API	
+		- Case {
+			
+			function pay(){
+				// 自带arguments参数
+				var length = arguments.length;
+				if(length == 0){
+					console.log('微信支付');
+				}else if(length == 1){
+					console.log('现金支付');
+				}else {
+					console.log('信用卡支付');
+				}
+			}
+			pay('1','2');
+		}
+
+	- 匿名函数
+		- 不指定函数名就叫匿名函数
+		- 用匿名函数节约资源,用完就销毁
+		- 匿名函数自调
+		- Case {
+			// Case 1 匿名函数自调
+			+function(){
+				alert('匿名函数自调用');
+			}();
+
+			// Case 2 匿名函数自调
+			+function(){
+				alert('匿名函数自调用');
+			}();
+		}	
+
+	- 作用域和作用域链
+		- 作用域(Scope)一个变量的可用范围
+
+	- OOP (面向对象)
+		- 三大特点:封装,继承,多态
+		- 便于维护
+		- 先将事物的属性和方法封装在一个对象,再反复使用对象这个功能
+		- 三种方式创建对象 
+			- 1. 直接量 
+				- 在创建对象时,就知道所有成员,用直接量创建
+				- var obj={
+					属性名:属性值,
+					方法名:function(){}
+					...
+				}
+			- 2.用 new 创建 
+				- JS即使对象创建完成 , 依然可以添加新的成员
+				- var obj = new Object();
+				obj.name = 值;
+				obj.方法 = function(){};
+
+			-3.构造函数
+				- 描述一类对象统一结构的函数
+				- 反复创建多个相同类型的结构的对象时使用
+				- 如何使用构造函数 
+					- 1.function 类型名(属性参数){
+						this.属性名=值;
+						this.方法名 = function(){};
+					}
+				- 优点: 解决了代码重用
+				- 缺点: 无法节约内存
+					- 解决:继承
+						- 父对象的成员,子对象无须创建就可以直接使用
+						- 只要多个子对象,拥有相同的属性和功能时,就要用到继承
+						- 只要在父对象定义一次所有子对象共用
+						- Js继承都是继承原型对象
+							- prototype 原型
+							- 原型对象是:集中存储一类子对象相同属性和功能的父对象
+							- 子对象有共同属性和功能都要定义在原型对象中
+							- 每创建一个构造函数,都会自动创建一个原型对象
+							- 用new创建子对象时,会自动设置子对象的 __proto__继承构造函数的prototype
+						- 自有属性和共有属性
+							- 自由属性:直接保存在对象本地属性
+							- 共有属性:保存在原型对象中 , 所有子对象共有共享的
+							- 获取值时:对象.属性
+							- 赋值
+								- 自有属性:对象.属性=值;
+								- 共有属性:构造函数.prototype.属性=值;
+							- API
+								- obj.hasOwnProperty('属性名') 用来判断是否自有属性	
+								- in 判断属性是否在对象中
+									- 只要自己或者父对象包含 属性名 , 就返回 true
+
+							- __proto__ 与 prototype 关系
+								- 构造函数 prototype 与 子对象 __proto__ 所指都是 原型对象	
+								- 不同角度 称呼就不一样 , 构造函数是 prototype 子对象是 __proto__	
+
+						- 内置对象的继承关系
+							- 凡是可是new的类型 , 都是构造函数
+							- 每个内置对象的构造函数都对应一个内置的原型对象
+							- 内置类型的原型对象中保存着该类型所有子对象共用的API
+							- 解决浏览器兼容问题需要用到内置对象
+
+						- 原型链
+							- 原型链由多级父元素逐级继承形成的链式结构
+							- __proto__ 只能继承父级的 Prototype 
+							- 原型链保存着所有对象成员和方法	
+							- 作用域链保存着所有变量 , 控制变量使用顺序,优先使用AO局部变量,
+								没有才向作用域链父级作用域查找 , 作用域链顶端 window 
+							- 原型链控制着对象成员的使用顺序,优先使用自己的方法,没有才顺着原型链向父级查找
+							- 原型链顶端一定是 Object.prototype
+							- 概括
+								- 所有不需要"对象."访问的变量都保存在作用域链
+								- 所有必须要"对象."访问的成员都保存在原型链
+
+						- 笔试题
+							- 判断一个对象是不是数组?有几种方法
+								- 1.typeof	--Case10
+									- 结论:typeOf 只能识别原始类型 , function 和 object
+									- 无法识别 Object 中不同的对象类型
+								- 2.验证原型对象  --Case11
+									- 1.验证是否数组对象: Object.getPrototypeOf(对象) == Array.prototype
+									- 2.var bool = father.prototype.isPrototypeOf(child)
+								- 3 验证构造函数 --Case12
+									- 构造函数自动生成 原型对象 prototype
+									- 子对象称呼 父级原型对象 __proto__
+									- 那原型对象称呼构造函数为: constructor (构造器)
+									- 验证API
+										- obj1.constructor == Array,
+										- var bool = obj instanceof Array (判断Obj是否由构造函数Array创建出来)
+											- instance 翻译:实例 , 一个类型中具体的一个对象
+											- 学生是一个类 , 李雷是一个实例对象
+											- 实例化就是用New创建一个对象
+											- obj instanceof Array
+											- obj 是不是Array类型的 一个实例
+								- 4 判断内部属性Class --Case13	
+									- 验证原型 与 验证构造函数 还是有一定缺点的
+										- var arr=[];
+										- var obj={}
+										- obj.__proto__ = arr;		
+											- 验证不够严谨 ,即使创建时不是数组对象
+											  只要原型链上有数组类型,也认为是数组类型对象
+											  此时,就算obj可以调用到数组API也是无意义的
+										- Case {
+											var n=1,s="str",b=true,nu=null,un=undefined;
+											function fn(){};
+											var obj1={};
+											var arr=[];
+											var obj3 = {};
+											// obj3的原型对象指定 arr , 那么 这关系就变成了
+											// obj3.__proto__ -> arr.__proto__ -> Array.prototype
+											// 也就是obj3 可以用 数组API
+											obj3.__proto__ = arr;
+											console.log(
+												// 判断构造函数
+												obj3 instanceof Array,	// true
+												// 判断原型对象
+												Array.prototype.isPrototypeOf(obj3)	// true
+												// 总结:验证不够严谨 ,即使创建时不是数组对象
+												// 		只要原型链上有数组类型,也认为是数组类型对象
+											);
+										}		  
+									- 检查内部属性class,class是每个对象中记录对象创建时使用的类型属性 
+										- 一旦对象被创建,class属性就无法被修改
+									- 什么是内部属性?
+										- 内部属性是不可轻易访问 
+										- 只能通过 Object.toString() 这个原型对象获取
+										- 只有 var obj = {} , 最纯正的对象可以获取到 , 其余都不行
+										- 用 var arr = [1,2] , arr.toString(); 访问到的是数组装的内容
+										- 为什么出现这种状况?
+											- 按原型链 , Object.prototype 是最顶层 , 无论 Array , Date , RegExp 都会继承到toString()
+											- 因为 Array.prototype 改写了toString()方法,改写成适合自己的方法
+											- 在数组中,用户会迫切想知道数组里面装的是什么内容 , 而并不关心 array的对象类型
+											- 所以 array 为了迎合用户 , toString()变成了输出内容
+											- 以上内容 , 就叫多态 , Js 面向对象第三大特征
+										- Case {
+												// 此时,就算obj3可以调用到数组API也是无意义的
+												// 检查内部属性 class , class是每个对象中记录对象创建时使用的类型属性
+												// 一旦对象被创建,class属性就无法被修改 
+												// 内部属性无法轻易获得
+												// 唯一办法调用 Object.prototype中的 toString();
+												console.log(obj1.toString());
+												// 输出结果 [object Object] 
+													// 第一个小写object 表示引用类型对象
+													// 第二个大写Object 表示Class内部属性
+
+												console.log(arr.toString());	// 空字符串
+												console.log(obj3.toString());	// 空字符串
+												// arr.toString() 为什么会出现空字符串?
+													// 因为 Array.prototype 改写了 toString() 这个方法
+													// 当你获得一个数组的时候,最想知道的是数组里面装了什么内容
+													// 并不是最想知道这个 对象 是什么类型
+													// 所以, toString() 经过 Array 的改造 , 变成了输出内容
+													// 以上内容就叫做 多态 , 面向对象第三大特点
+												}	
+									- 什么多态?
+										- 同一个事物,在不同的情况下表现出不同的状态
+										- 重写 overRide
+											- 如果子对象觉得父对象的成员不好用,可以在子对象本地定义同名成员来覆盖父对象成员
+											- 只要觉得父对象成员不好用,那么就可以在本地重写父对象的成员
+											- 重写,就是直接定义同名方法
+											- Case {
+														function student(name,age){
+															this.name = name;
+															this.age = age;
+														}
+														// 相同方法写在原型对象中
+														student.prototype.intr = function(){
+															console.log(`我是${this.name},我${this.age}岁了`);
+														}
+														var lilei = new student('李雷',11);
+														// 李雷调用 toString()会得到什么?
+														console.log(lilei.toString());
+															// [object Object] 
+															// 因为李雷的prototype并没有定义toString()
+															// 顺着原型链找到了 obecjt.prototype 的 toString()方法
+
+														// 这样等于重写父对象toString()方法
+														student.prototype.toString = function(){
+															console.log(`重写OverRide,我叫${this.name}`);
+														}	
+														lilei.toString();
+													}		
+											- 几乎所有内置对象的原型都重写了 Obeject 的 toString()方法,导致所有内置对象的子对象,都无法调用到 Object的toString()
+												- 解决: call() --Case14
+												- 使用方法:父对象.prototype.调用方法名.call(调用对象)
+												- Case {
+															var n=1,s="str",b=true,nu=null,un=undefined;
+															function fn(){};
+															var obj1={};
+															var arr=[];
+															var obj3 = {};
+															obj3.__proto__ = arr;
+															console.log(
+																arr.toString(),	// 空,被Array拦截
+																obj3.toString(),// 空,被Array拦截
+															);
+															// call 格式: 父对象.prototype.调用方法名.call(调用对象)
+															console.log(
+																Object.prototype.toString.call(arr), // [object Array]
+																Object.prototype.toString.call(obj3),// [object Object]
+															);
+															// 判断
+															console.log(
+																Object.prototype.toString.call(arr) == "[object Array]", // true
+																Object.prototype.toString.call(obj1) == "[object Array]", // false
+																Object.prototype.toString.call(obj3) == "[object Array]", // false
+															);
+
+														}
+								- 5 Array.isArray(obj);
+									- 专用判断是否数组API ES5 新增的函数
+
+						- 自定义继承 --Case16
+							- 仅设置两个对象之间的继承关系
+								- child.__proto__ = father;
+								- 问题是 proto 也是内置的属性 , 内部属性可能被浏览器禁用
+								- 解决:Object.setPrototypeOf(child,father) 
+								- 翻译:设置child 继承 father
+								- Case {
+									var lilei = {
+										name:'李雷',
+										age:11,
+										intr:function(){
+											console.log(`我是${this.name},我是${this.age}岁`);
+										}
+									}
+									lilei.intr();
+									// lilei.__proto__ -> Object.prototype
+									var father = {
+										bal:1000000000,
+										car:'bwm'
+									}
+									// 自定义继承
+									Object.setPrototypeOf(lilei,father);
+									console.log(lilei);
+								}
+
+							- 批量设置子对象继承关系
+								- 只要修改构造函数的prototype对象即可
+								- Case {
+									var father = {
+										bal:100000000,
+										car:'bwm'
+									}
+									function student(name,age){
+										this.name = name;
+										this.age = age;
+									}
+									// 先修改继承
+									student.prototype = father;
+									// 再添加方法
+									student.prototype.intr = function(){
+										console.log(`我是${this.name},我${this.age}岁了`);
+									}
+									// 最后实例化对象
+									var lilei = new student('李雷',11);
+									var hmm = new student('hmm',12);
+									console.log(lilei);
+								}
+
+							- 两种类型间的继承	
+								- 如果发现多个类型有相同的属性和相同的方法时,纪要抽象出一个父类型
+									- 1.定义父类型
+										- 构造函数:集中定义相同的属性结构
+										- 原型对象:集中定义相同的方法
+									- 2.让子类型原型对象基础父类型原型对象
+										- 保证子对象可调用父类型原型中的方法
+									- 3.让子类型构造函数中借用父类型构造函数
+										- 请父类型构造函数 构建 共有的属性	
+										- 问题:直接调用父类型构造函数 , 那么 this 指向谁
+										- this 默认 指向 windwo
+										- 解决:
+											- 解决 call(); 只要this不是想要的,就用call随便替换
+											- 父类型构造.call(this,参数) 替换this
+											- Case {
+													// 父类型
+													function Flyer(name,speed){
+														this.name = name;
+														this.speed = speed;
+													}
+													// 父类型原型对象方法
+													Flyer.prototype.fly = function(){
+														console.log(`${this.name}以时速${this.speed}飞行`);
+													}
+													// 子类型
+													function plane(name,speed,score){
+														// 问题出在 this 上
+														// this 获得的是 . 前面的对象
+														// 没有 . 那么会自动获得创建的新对象
+														// 那么没有用. 调用 也没有用 new 调用 , 那么 this指向window
+														// 问题:直接调用父类型构造函数 , 那么 this 默认 指向 windwo
+														// 解决 call(); 只要this不是想要的,就用call随便替换
+														Flyer.call(this,name,speed);	// 借用父类型构造
+														// 自己理解:
+															// 构造函数在没有 New 或者没有 "." 的情况下 , This是指向window
+															// 当你new一个构造函数时 , 创建一个新的对象,  this是指向新对象
+															// 在plane 调用Flyer的时候 并没有 New 或者 "." , 所以指向window
+															// 用call(),把新对象(plane)的this 替换 Flyer 里面的 this . 就等于指向了新对象
+														this.score = score;
+													}
+													plane.prototype.getScore = function(){
+														console.log(`${this.name}以时速${this.speed}飞行,击落我获得${this.score}分`);
+													}
+													// 子类型继承父类型 原型对象
+													Object.setPrototypeOf(plane.prototype,Flyer.prototype);
+													var j10 = new plane('j10',100,50);
+													console.log(j10);	
+													j10.getScore();
+													j10.fly();
+											}
+
+
+
+		- 关键字 this ,引用正在调用函数的对象的关键词
+			- 自动引用正在调用当前的 . 前的对象
+			- 不加 this的变量,默认在作用域链中找,不会去对象中找
+			- 只要对象的方法想使用自己的属性时 , 必须加this
+			- obj.fun() , this 指向obj
+			- new Fun() , this 指向正在创建的新对象
+			- fun() 和 匿名函数自调, this 指向window
+			- 当一个构造函数 , 没有 new 没有 . 那么 this指向window
+			- 如果this 不是你想要的时候 , fun.call(this,参数) 替换
+		
+		- new Object() , new 干了几件事?
+			- 1.创建空对象
+			- 2.让新对象继承构造函数的原型对象 设置新对象 __proto__ 指向构造函数prototype
+			- 3.调用构造函数
+			- 4.返回新对象的地址
+
+		- for in 遍历对象 Case19
+
+		- call() 与 apply()	Case20
+			- apply(this,arguments)
+			- apply 和 call 都是强行借用一个本来无法调用的函数 , 并临时替换函数中的this为指定对象
+			- call 必须是单独传参数 , 逗号分隔
+			- apply 可自动打散数组类型参数
+
+
+
+		- Case {
+			// Case1 直接量
+				// 何时使用这种创建方式?
+				// 在创建对象时,就知道所有成员,用直接量创建
+				var lilei = {
+					name:'李雷',
+					age:11,
+					intr:function(){
+						// `${变量}`	ES6语法
+						console.log(`我是${this.name},我${this.age}岁了`);
+					}
+				}
+				console.log(lilei);
+				lilei.intr();
+
+			// Case2 new Object()
+				// 何时使用这种创建方式?
+				// 在创建对象时,不知道所有成员,用 new Object
+				// JS即使对象创建完成 , 依然可以添加新的成员
+				var lilei = new Object();
+				lilei.name = '李雷';
+				lilei.age = 11;
+				lilei.intr=function(){
+					console.log(`我是${this.name},我${this.age}岁了`);
+				}
+				// JS一切都是关联数组
+				// obj.name == obj["name"]
+				// 对象存储结构和关联数组完全一样
+				console.log(lilei["name"]);
+				console.dir(lilei);
+
+			// Case3 构造函数
+				function student(name,age){
+					this.name = name;
+					this.age = age;
+					this.intr = function(){
+						console.log(`我是${this.name},我${this.age}岁了`);
+					}
+				}
+				var lilei = new student('李雷',11);
+				var hmm = new student('韩梅梅',12);
+				lilei.intr();
+				hmm.intr();
+				console.log(lilei.intr == hmm.intr); //false		
+
+			// Caee4 原型对象
+				// 构造函数只写属性
+				function student(name,age){
+					this.name = name;
+					this.age = age;
+				}
+				// 相同方法写在原型对象中
+				student.prototype.intr = function(){
+					console.log(`我是${this.name},我${this.age}岁了`);
+				}
+				// 相同固定属性写在原型对象中
+				student.prototype.className = '初一二班';
+				var lilei = new student('李雷',11);
+				var hmm = new student('韩梅梅',12);
+				lilei.intr();
+				hmm.intr();	
+				console.log(lilei.intr == hmm.intr); //true	
+				console.log(lilei.className);
+
+			// Case5 自有属性和共有属性
+				function student(name,age){
+					this.name = name;
+					this.age = age;
+				}
+				// 相同方法写在原型对象中
+				student.prototype.intr = function(){
+					console.log(`我是${this.name},我${this.age}岁了`);
+				}
+				// 相同固定属性写在原型对象中
+				student.prototype.className = '初一二班';
+				var lilei = new student('李雷',11);
+				var hmm = new student('韩梅梅',12);
+				lilei.intr();
+				hmm.intr();	
+				// 李雷修改了原型对象共有属性
+				lilei.className = '初三二班';
+				// 这样修改原型属性是错误
+				console.log(lilei.className); // 修改了自有属性
+				console.log(hmm.className);	  // 原型共有属性不变
+				// 要想修改共有属性:
+				student.prototype.className = '初三二班';
+				console.log(lilei.className);
+				console.log(hmm.className);	
+
+			// Case6 API hasOwnProperty
+				function student(name,age){
+					this.name = name;
+					this.age = age;
+				}
+				// 相同方法写在原型对象中
+				student.prototype.intr = function(){
+					console.log(`我是${this.name},我${this.age}岁了`);
+				}
+				// 相同固定属性写在原型对象中
+				student.prototype.className = '初一二班';
+				var lilei = new student('李雷',11);
+				var hmm = new student('韩梅梅',12);
+
+				// 检查属性
+				function checkPropo(obj,name){
+					// 返回布尔值
+					if(obj.hasOwnProperty(name)){
+						console.log('自有属性');
+					}else if(obj[name] !== undefined){
+						console.log('共有属性');
+					}else if(obj[name] == undefined){
+						console.log('没有属性');
+					}
+				}
+				checkPropo(lilei,'name');	// 自有
+				checkPropo(hmm,'className');// 共有
+				checkPropo(hmm,'abc');		// 没有	
+
+			// Case7 API in
+				function student(name,age){
+					this.name = name;
+					this.age = age;
+				}
+				// 相同方法写在原型对象中
+				student.prototype.intr = function(){
+					console.log(`我是${this.name},我${this.age}岁了`);
+				}
+				// 相同固定属性写在原型对象中
+				student.prototype.className = '初一二班';
+				var lilei = new student('李雷',11);
+				var hmm = new student('韩梅梅',12);
+
+				// 检查属性
+				function checkPropo(obj,name){
+					// 返回布尔值
+					if(obj.hasOwnProperty(name)){
+						console.log('自有属性');
+						// 如果 属性 有 在对象里面
+					}else if(name in obj){
+						console.log('共有属性');
+					}else if(obj[name] == undefined){
+						console.log('没有属性');
+					}
+				}
+				checkPropo(lilei,'name');	// 自有
+				checkPropo(hmm,'className');// 共有
+				checkPropo(hmm,'abc');		// 没有	
+
+			// Case8 内置函数
+				// 就是你打开浏览器时 , js 自动创建的构造函数
+				// arr就是继承关系 继承了 Array()的原型对象
+				// Array()原型对象放了 sort() push() slice() .. 等等方法 , 所以可以直接调用
+
+				var arr = new Array();
+				var date = new Date();
+				// __proto__ 指向了原型对象,里面内置了很多API
+				console.log(arr);
+				var arr2 = new Array();
+				console.log(arr == arr2);	// fase
+				// 证明都指向相同的原型对象
+				console.log(arr.__proto__ == arr2.__proto__);	// true	
+
+			// Case9 利用 内置对象API可以解决浏览器兼容问题
+				// 如果一个API新的浏览器支持 , 旧浏览器不支持怎么办?
+				// 新的API 数组 的 indexOf
+
+				var arr = [1,2,3,2,1];
+				// 浏览器兼容 IE8
+				if(typeof(Array.prototype.indexOf) != 'function'){
+					Array.prototype.indexOf = function(val,fromi){
+	
+						// 如果fromi 用户没有给, 默认为0
+						fromi = fromi || 0;
+						// i从fromi遍历当前数组 -> this
+						// this 将来调用API的 . 前的对象 , 现在这个对象值arr,因为 arr调用他
+						for(var i = fromi;i<this.length;i++){
+							// 如果当前数组的当前元素值为 val
+							if(this[i] === val){
+								// 返回i
+								return i;
+							}
+						}
+						遍历结束都没有 返回-1
+						return -1;
+
+					}
+				}
+				console.log(arr.indexOf(2));	// 有值返回 1
+				console.log(arr.indexOf(2,2));	// 有值返回 3
+				console.log(arr.indexOf(2,4));	// 没值返回 -1	
+
+			// Case10 typeOf 识别类型
+				var n=1,s="str",b=true,nu=null,un=undefined;
+				function fn(){};
+				var obj1={};
+				var arr=[];
+
+				// 结论:typeOf 只能识别原始类型 , function 和 object
+				// 无法识别 Object 中不同的对象类型
+				console.log(
+				typeof(n),
+				typeof(s),
+				typeof(b),
+				typeof(nu),	// null = object 
+				typeof(un),
+				typeof(fn),
+				typeof(obj1),
+				typeof(arr)	// arr = object
+				);	
+
+			// Case11 验证原型
+				var n=1,s="str",b=true,nu=null,un=undefined;
+				function fn(){};
+				var obj1={};
+				var arr=[];
+				// 1.检查原型对象
+					console.log(
+						// 获得Obj1的原型对象 与 数组对象的原型对象做比较
+						Object.getPrototypeOf(obj1) == Array.prototype,
+						// 获得arr的原型对象 与 数组对象的原型对象做比较
+						Object.getPrototypeOf(arr) == Array.prototype
+					);
+				// 2 var bool = father.prototype.isPrototypeOf(child)
+					console.log(
+						Array.prototype.isPrototypeOf(obj1),
+						Array.prototype.isPrototypeOf(arr),
+					);	
+
+			// Case12 验证构造函数
+				var n=1,s="str",b=true,nu=null,un=undefined;
+				function fn(){};
+				var obj1={};
+				var arr=[];
+					// - 构造函数自动生成 原型对象 prototype
+					// - 子对象称呼 父级原型对象 __proto__
+					// - 那原型对象称呼构造函数为: constructor (构造器)
+					console.log(
+						// 判断构造函数是否等于 数组对象
+						obj1.constructor == Array,
+						arr.constructor == Array,
+					);	
+
+					console.log(
+						// 判断构造函数是否等于 数组对象
+						// instanceof 生来就是验证与判断
+						// 判断Obj是否由构造函数Array创建出来
+						// var bool = obj instanceof Array
+						obj1 instanceof Array,
+						arr instanceof Array,
+					);	
+
+					// instance 翻译:实例 , 一个类型中具体的一个对象
+					// 学生是一个类 , 李雷是一个实例对象
+					// 实例化就是用New创建一个对象
+					// obj instanceof Array
+					// obj 是不是Array类型的 一个实例
+					// 从原型判断
+						// 翻译: arr的原型是指向数组原型吗
+						var result = Array.prototype.isPrototypeOf(arr);
+						console.log(result);
+						// 翻译:arr的原型是等于数组原型吗
+						console.log(Object.getPrototypeOf(arr) == Array.prototype);
+					// 从构造函数判断
+						// constructor 构造函数
+						// 翻译: arr的构造函数 是不是 Array
+						console.log(arr.constructor == Array);
+						// arr是不是Array这个构造函数的实例化
+						var bool = arr instanceof Array;
+						console.log(bool);	
+			// Case13 严格判断
+				var n=1,s="str",b=true,nu=null,un=undefined;
+				function fn(){};
+				var obj1={};
+				var arr=[];
+				var obj3 = {};
+				// obj3的原型对象指定 arr , 那么 这关系就变成了
+				// obj3.__proto__ -> arr.__proto__ -> Array.prototype
+				// 也就是obj3 可以用 数组API
+				obj3.__proto__ = arr;
+				console.log(
+					// 判断构造函数
+					obj3 instanceof Array,	// true
+					// 判断原型对象
+					Array.prototype.isPrototypeOf(obj3)	// true
+					// 总结:验证不够严谨 ,即使创建时不是数组对象
+					// 		只要原型链上有数组类型,也认为是数组类型对象
+				);
+
+				// 此时,就算obj3可以调用到数组API也是无意义的
+					// 检查内部属性 class , class是每个对象中记录对象创建时使用的类型属性
+					// 一旦对象被创建,class属性就无法被修改 
+					// 内部属性无法轻易获得
+					// 唯一办法调用 Object.prototype中的 toString();
+					console.log(obj1.toString());
+					// 输出结果 [object Object] 
+						// 第一个小写object 表示引用类型对象
+						// 第二个大写Object 表示Class内部属性
+
+					console.log(arr.toString());	// 空字符串
+					console.log(obj3.toString());	// 空字符串
+					// arr.toString() 为什么会出现空字符串?
+						// 因为 Array.prototype 改写了 toString() 这个方法
+						// 当你获得一个数组的时候,最想知道的是数组里面装了什么内容
+						// 并不是最想知道这个 对象 是什么类型
+						// 所以, toString() 经过 Array 的改造 , 变成了输出内容
+						// 以上内容就叫做 多态 , 面向对象第三大特点
+					// 什么是多态?
+						// 同一个事物,在不同情况下表现出不同的状态
+						// 重写 
+						// 如果子对象觉得父对象的成override员不好用,可以在子对象本地定义同名成员来覆盖父对象成员
+					function student(name,age){
+						this.name = name;
+						this.age = age;
+					}
+					// 相同方法写在原型对象中
+					student.prototype.intr = function(){
+						console.log(`我是${this.name},我${this.age}岁了`);
+					}
+					var lilei = new student('李雷',11);
+					// 李雷调用 toString()会得到什么?
+					console.log(lilei.toString());
+						// [object Object] 
+						// 因为李雷的prototype并没有定义toString()
+						// 顺着原型链找到了 obecjt.prototype 的 toString()方法
+
+					// 这样等于重写父对象toString()方法
+					student.prototype.toString = function(){
+						console.log(`重写OverRide,我叫${this.name}`);
+					}	
+					lilei.toString();	
+
+			// Case14 call()
+				var n=1,s="str",b=true,nu=null,un=undefined;
+				function fn(){};
+				var obj1={};
+				var arr=[];
+				var obj3 = {};
+				obj3.__proto__ = arr;
+				console.log(
+					arr.toString(),	// 空,被Array拦截
+					obj3.toString(),// 空,被Array拦截
+				);
+				// call 格式: 父对象.prototype.调用方法名.call(调用对象)
+				console.log(
+					Object.prototype.toString.call(arr), // [object Array]
+					Object.prototype.toString.call(obj3),// [object Object]
+				);
+				// 判断
+				console.log(
+					Object.prototype.toString.call(arr) == "[object Array]", // true
+					Object.prototype.toString.call(obj1) == "[object Array]", // false
+					Object.prototype.toString.call(obj3) == "[object Array]", // false
+				);
+
+			// Case15 Array.isArray(obj);
+				var n=1,s="str",b=true,nu=null,un=undefined;
+				function fn(){};
+				var obj1={};
+				var arr=[];
+				var obj3 = {};
+				obj3.__proto__ = arr;
+				console.log(
+					// ES5 新增 , 实际上就是用了 Object.prototype.toString.call()
+					Array.isArray(arr),
+					Array.isArray(obj1),
+
+				);	
+			// Case16 自定义继承
+				var lilei = {
+					name:'李雷',
+					age:11,
+					intr:function(){
+						console.log(`我是${this.name},我是${this.age}岁`);
+					}
+				}
+				lilei.intr();
+				// lilei.__proto__ -> Object.prototype
+				var father = {
+					bal:1000000000,
+					car:'bwm'
+				}
+				// 自定义继承
+				Object.setPrototypeOf(lilei,father);
+				console.log(lilei);	
+
+			// Case17 批量自定义继承
+				var father = {
+					bal:100000000,
+					car:'bwm'
+				}
+				function student(name,age){
+					this.name = name;
+					this.age = age;
+				}
+				// 先修改继承
+				student.prototype = father;
+				// 再添加方法
+				student.prototype.intr = function(){
+					console.log(`我是${this.name},我${this.age}岁了`);
+				}
+				// 最后实例化对象
+				var lilei = new student('李雷',11);
+				var hmm = new student('hmm',12);
+				console.log(lilei);	
+
+			// Case18 类型继承
+				// 父类型
+				function Flyer(name,speed){
+					this.name = name;
+					this.speed = speed;
+				}
+				// 父类型原型对象方法
+				Flyer.prototype.fly = function(){
+					console.log(`${this.name}以时速${this.speed}飞行`);
+				}
+				// 子类型
+				function plane(name,speed,score){
+					// 问题出在 this 上
+					// this 获得的是 . 前面的对象
+					// 没有 . 那么会自动获得创建的新对象
+					// 那么没有用. 调用 也没有用 new 调用 , 那么 this指向window
+					// 问题:直接调用父类型构造函数 , 那么 this 默认 指向 windwo
+					// 解决 call(); 只要this不是想要的,就用call随便替换
+					Flyer.call(this,name,speed);	// 借用父类型构造
+					// 自己理解:
+						// 构造函数在没有 New 或者没有 "." 的情况下 , This是指向window
+						// 当你new一个构造函数时 , 创建一个新的对象,  this是指向新对象
+						// 在plane 调用Flyer的时候 并没有 New 或者 "." , 所以指向window
+						// 用call(),把新对象(plane)的this 替换 Flyer 里面的 this . 就等于指向了新对象
+					this.score = score;
+				}
+				plane.prototype.getScore = function(){
+					console.log(`${this.name}以时速${this.speed}飞行,击落获得${this.score}分`);
+				}
+				// 子类型继承父类型 原型对象
+				Object.setPrototypeOf(plane.prototype,Flyer.prototype);
+
+				// Bee 类
+				function Bee(name,speed,award){
+					Flyer.call(this,name,speed);
+					this.award = award
+				}
+				Bee.prototype.getAward = function(){
+					console.log(`${this.name}以时速${this.speed}飞行,击落获得${this.award}`);
+				}
+				Object.setPrototypeOf(Bee.prototype,Flyer.prototype);
+				// 实例化 j10
+				var j10 = new plane('j10',100,50);
+				// 实例化 be1
+				var be1 = new Bee('be1',50,'一条命');
+				console.log(be1);
+				console.log(j10);	
+				
+				be1.fly();
+				j10.fly();	
+				be1.getAward();
+				j10.getScore();
+
+			// Case19 for in 遍历
+				var lilei = {
+					name:'李雷',
+					age:11,
+					intr:function(){
+						// `${变量}`	ES6语法
+						console.log(`我是${this.name},我${this.age}岁了`);
+					}
+				}
+				// 克隆
+				function clone(obj){
+					var newObj = {};
+					for(var key in obj){
+						newObj[key] = obj[key];
+					}
+					return newObj;
+				}
+				var cloneLi = clone(lilei);
+
+			// Case20 call与apply
+				function Flyer(name,speed){
+					this.name = name;
+					this.speed = speed;
+				}
+
+				Flyer.prototype.fly = function(){
+					console.log(`${this.name}以时速${this.speed}飞行`);
+				}
+
+				function Bee(name,speed,award){
+					// apply 和 call 都是强行借用一个本来无法调用的函数 , 并临时替换函数中的this为指定对象
+					// call 必须是单独传参数 , 逗号分隔
+					// Flyer.call(this,name,speed);
+					// apply 可自动打散数组类型参数
+					Flyer.apply(this,arguments);
+					this.award = award
+				}
+				Bee.prototype.getAward = function(){
+					console.log(`${this.name}以时速${this.speed}飞行,击落获得${this.award}`);
+				}
+				Object.setPrototypeOf(Bee.prototype,Flyer.prototype);
+
+				var be1 = new Bee('be1',50,'一条命');				
+				be1.fly();
+				be1.getAward();
+
+		}	
+
+	
+	- ES5
+		- 保护对象
+			- Js对象中的属性,随时可以被修改,删除,替换,添加.
+			- 保护属性
+				- 命名属性:可用.访问到的属性
+					- 数据属性:直接存储属性值的属性
+						- 每个属性都有四大特征
+							- value:实际存储属性值
+							- writable:是否可以修改,默认为true
+							- enumerable:是否可以被for in 遍历到 , 无法控制 . 访问
+							- configurable:是否可修改其他特性 控制 writable , enumerable 以及 是否可删除属性
+								- 如果关闭了configurable , 属性将不可删除
+							- 获取四大特性:var attrs = Object.getOwnPropertyDescriptor(对象,属性名)
+							- 设置四大特效:Object.defineProperty(bin,'id',{
+												writable:false,	// 设置只读
+												configurable:false // 双保险,禁止再修改 , 不可逆 , 还禁止删除
+											})
+							- Case {
+									"use strict";
+									var bin = {
+										id:1001,
+										name:'Bin',
+										salary:10000
+									};
+									// 获得四大特性
+									var attrs = Object.getOwnPropertyDescriptor(bin,'id');
+									console.log(attrs);
+									// 修改Id属性为只读 , define定义 , property属性
+									Object.defineProperty(bin,'id',{
+										writable:false,	// 设置只读
+										configurable:false // 双保险,禁止再修改 , 不可逆 , 还禁止删除
+									})
+									// 禁止遍历 , 但是不能控制 . 访问
+									Object.defineProperty(bin,'salary',{
+										enumerable:false,
+										configurable:false
+									})
+
+									// 设置为禁止修改 , 修改时候并不报错 , 除非开严格模式
+									// bin.id++;
+									// 删除属性
+									// delete bin.id;	// 设置了 config:flase 报错
+									console.log(bin);
+							}				
+							- 同时修改多个属性值的四大特性
+								- Object.defineProperties(obj,{
+									属性名:{特性:值},
+									属性名:{特性:值}
+								})
+								- 如果要修改的属性不存在会报错吗?
+									- 会自动创建新的属性	
+									- 通过 Object.defineProperty 自动创建的属性 , 四大特性都默认为 false
+									- 通过 对象直接添加的新属性, 四大特性为 true
+								- Case {
+									var bin = {
+										id:1001,
+										name:'Bin'
+									};
+									// 同时修改多个属性的四大特性
+									Object.defineProperties(bin,{
+										id:{writable:false,configurable:false},
+										name:{configurable:false},
+										// salary:{enumerable:false,configurable:false}
+										// 通过这个方法添加新属性 , 四大特性默认为 False , 除非手动打开
+										salary:{value:1000,writable:true,configurable:true}
+									})
+									// delete bin.name;
+									// bin.id++;
+									var attrs = Object.getOwnPropertyDescriptor(bin,'salary');
+									// 通过这个方法添加新属性 , 四大特性默认为 False
+									console.log(attrs);
+									console.log(bin);
+								}
+
+						- 自定义保护	
+							- 数据属性四大属性只能做到基本保护 , 不能做到自定义保护
+							- 访问器属性:不直接存储属性,专门对其他属性提供保护的特殊属性
+
+				- 内部属性:不允许用.访问到的属性
+					- 如 class , __proto__
+			- 保护整个对象		
+
+*/
+"use strict";
+var bin = {
+	id:1001,
+	name:'Bin',
+	age:21
+};
+				
+</script>
+</body>
+</html>
