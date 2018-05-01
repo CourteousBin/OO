@@ -1,0 +1,81 @@
+.WH(@width,@height){
+	width: @width;
+	height: @height;
+}
+.bg(@bg){
+	background: @bg;
+}
+.pR(){
+	position: relative;
+}
+.pA(){
+	position: absolute;
+}
+#gridPannel{
+	.WH(480px,480px);
+	.bg(#bbada0);
+	border-radius: 10px;
+	.pR();
+	margin: 0 auto;
+}
+.cell {
+	.WH(100px,100px);
+	.pA();
+	border-radius: 6px;
+	.bg(#ccc0b3);
+	font-size: 60px;
+	text-align: center;
+	color: #fff;
+	line-height: 100px;
+}
+[id^="c0"]{top:16px}
+[id^="c1"]{top:132px}
+[id^="c2"]{top:248px}
+[id^="c3"]{top:364px}
+[id$="0"]{left:16px}
+[id$="1"]{left:132px}
+[id$="2"]{left:248px}
+[id$="3"]{left:364px}
+
+.n2{
+	.bg(#eee3da);
+}
+.n4{
+	.bg(#ede0c8);
+}
+.n8{
+	.bg(#f2b179);
+}
+.n16{
+	.bg(#f59563);
+}
+.n32{
+	.bg(#f67c5f);
+}
+.n64{
+	.bg(#f65e3b);
+}
+.n128{
+	.bg(#edcf72);
+}
+.n256{
+	.bg(#edcc61);
+}
+.n512{
+	.bg(#9c0);
+}
+.n1024{
+	.bg(#33b5e5);
+}
+.n2048{
+	.bg(#09c);
+}
+.n4096{
+	.bg(#a9c);
+}
+.n8192{
+	.bg(#93c);
+}
+.n1024,.n2048,.n4096,.n8192 {
+	font-size: 40px;
+}
