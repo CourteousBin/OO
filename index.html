@@ -10,6 +10,10 @@
 /*
 	Javascript 面向对象学习
 
+	- 面向对象思想
+		- 封装
+			- 面向对象是对面向过程的封装,有了面向对象并不意味着,就可以抛弃面向过程
+
 	- 变量预解析
 		- Js的解析器在页面加载的时候,首先是检查语法的错误
 		- 只提前变量,不提前值
@@ -292,6 +296,7 @@
 			-3.构造函数
 				- 描述一类对象统一结构的函数
 				- 反复创建多个相同类型的结构的对象时使用
+				- 构造函数首字母大写
 				- 如何使用构造函数 
 					- 1.function 类型名(属性参数){
 						this.属性名=值;
@@ -1586,33 +1591,245 @@
 				- 如果立刻执行函数使用 call apply
 				- 如果只创建一个新的函数就用Bind	
 
+		- 对象中使用变量
+			- Case {
+				var stu = new Object();
+				var age = 'age';
+
+				stu.name = 'Bin';
+				// 对象吗[变量] = 对象值 
+				stu[age] = 21;
+
+				//{name: "Bin", age: 21}
+
+			}	
+
+		- 逻辑中断
+			- 表达式1 || 表达式2
+				- 表达式1 为真 返回表达式1
+				- 表达式1 为假 返回表达式2
+
+			- 表达式1 && 表达式2
+				- 	// 如果表达式1为真
+					// 判断表达式2 是否为真 若为真 返回表达式2 , 若为假 , 也返回表达式2
+				-	// 如果1为假 , 直接返回表达式1 
+			- Case {
+
+					// 表达式1 为真 返回表达式1
+					// 表达式1 为假 返回表达式2
+					var num = 1 || 2;
+					console.log(num);
+
+					// 如果表达式1为真
+						// 判断表达式2 是否为真 若为真 返回表达式2 , 若为假 , 也返回表达式2
+					// 如果1为假 , 直接返回表达式1 
+					var test = 0 && 1;
+					console.log(test);
+			}
+		
+		- delete 
+			- delete关键字可以删除对象属性 , 还有未使用var的声明
+			- delete 返回布尔值 , 用来表示删除是否成功
+			- Case {
+				var obj = {
+					name:'obj'
+				}
+				console.log(obj);
+
+				var bool = delete obj.name;
+				console.log(bool);
+			}
+
+		- 数据类型 
+			- 简单数据类型
+				- string number boolean undefined
+			- 复杂数据类型
+				- Object Array Date RegExp function string Number Boolean Math Null
+		- For in 
+			- 用来遍历对象		
+			- Case {
+				var obj = {
+					name:'obj',
+					age:'20',
+					fn:function(){
+						console.log('age='+this.age);
+					},
+				}
+				for(var key in obj){
+					console.log(key);	// 键
+					console.log(obj[key]);	// 值
+				}
+			}
+
+		- 混入继承
+			- Case {
+
+				var obj = {};
+
+				var obj1 = {
+					name:'张学友',
+					sayHello:function(){
+						console.log('我是'+this.name);
+					}
+				}
+				for (var k in obj1){
+					// 复制
+					obj[k] = obj1[k];
+				}
+				console.log(obj);
+			}	
+
+		- 工厂函数
+			- Case {
+					// 工厂模式
+					function createObject(name){
+						// 创建对象
+						var obj = new Object();
+						obj.name = name;
+						obj.sing = function(){
+							console.log('my name is '+ this.name);
+						};
+						// 返回出去
+						return obj;
+					}
+					// 实例化
+					var singer = createObject('张学友');
+					singer.sing();
+					console.log(singer);
+			}
+		- 原型对象替换可能出现的问题
+			- Case {
+					function Person(name,age,gender){
+						this.name = name;
+						this.age = age;
+						this.gender = gender;
+					}
+
+					Person.prototype.sayHello = function(){
+						console.log('my Name is ' + this.name);
+					}
+
+					var p = new Person('Bin','21','IT');
+					p.sayHello();
+
+					// 替换了原型对象
+					Person.prototype = {
+						msg:function(){
+							console.log('替换了原型对象');
+						}
+					};
+
+					var p1 = new Person('BigBinbin','21','It')
+					p1.msg();
+					p1.sayHello();	// 不能访问 sayHello
+					p.sayHello();	// 可以访问 sayHello
+
+					// 总结
+						// 如果第二种方式方法使用原型,那么会出现以下问题
+						// 在替换原型之前创建对象的原型, 和 替换原型对象之后创建的对象
+						// 的原型 , 不是同一个
+			}	
+
+		- 通过对象访问原型
+			- __proto__属性
+			- 为了保证通用性,这个属性不推荐使用
+			- 主要用来调试
+
+		- constructor 实例化新对象
+		
+			- Case {
+					function Person(name,age,gender){
+						this.name = name;
+						this.age = age;
+						this.gender = gender;
+					}
+					Person.prototype.sayHello = function(){
+						console.log('hello !');
+					}
+					var p = new Person('bin','21','man');
+					// 等于new Person()
+					var p1 = new p.constructor('刘德华','55','man');
+					console.log(p1);
+			}
+
+		- 安全扩展内置对象
+			- 如果直接修改内置对象的原型对象 会影响整个开发团队
+			- Case{
+					// 定义一个数组
+					var arr = [1,2,3,4];
+					// 在数组原型对象添加方法 , 扩展内置对象 (不推荐)
+					Array.prototype.sayHello = function(){
+						console.log('呵呵');
+					}
+					// 正常使用
+					arr.sayHello();
+
+
+					// 如何安全的扩展一个内置对象
+					function MyArray(){
+						this.name = '我是一个数组';
+					}
+					// 继承了内置对象
+					MyArray.prototype = [];
+					// myArray这个对象就是继承 数组对象
+					var myArray = new MyArray();
+					console.log(myArray);
+			}
+			- 原型链
+				- 语言精粹
+					- Case {
+						// 语言精粹提出的继承方式
+						function Jc(obj){
+							var o = {};
+							// o的原型对象继承obj , obj同时也继承了 Object
+							o.__proto__ = obj;
+							return o;
+						}
+						var o = Jc({name:'Bin'});
+						console.log(o);
+					}
+
+				- 经典继承写法 ES5
+					- Case{
+						var o = {
+							name:'Bin',
+							age:'21'
+						};
+						// 返回一个新对象 , 继承来自参数中的obj
+						var obj = Object.create(o);
+						console.log(obj);
+					}
+				- 解决浏览器问题 {
+				
+						// 检测浏览器是否兼容 create
+						function create(obj){
+							if(Object.create){
+								return Object.create(obj);
+							}else {
+								// 定义一个构造函数
+								function F(){};
+								F.prototype = obj;
+								return new F();
+							}
+						}
+
+						var obj = create({name:'bin'});
+						console.log(obj);
+				}	
+
+		- new Function()					
+			- Function 这个构造函数 可以用来创建函数对象
+			- 语法:
+				- 0.一个参数都不传的情况 创建一个空函数
+					- var x = new Function();
+				- 1.只传一个参数的情况 这个参数是函数体
+					- var x = new Function('函数体');
+				- 2.传多个参数的情况下 , 最后一个为函数体 , 前面都是形参
+					- var x = new Function(x,y,z,'函数体');
 
 */
 "use strict";
-function calc(base,bonus){
-	console.log(this.name + '的总工资是'+(base+bonus));
-}
-var lilei = {
-	name:'liLei'
-};
-var hmm = {
-	name:'韩梅梅'
-};
-// 李雷临时借用calc计算器
-	// call有替换this的功能
-calc.call(lilei,1000,400);
-calc.call(hmm,200,400);
-// liLei买了一个和calc一样的计算器,新计算器永久属于李雷
-var lilei_calc = calc.bind(lilei);
-lilei_calc(10000,400);
-lilei_calc(20000,400);
-lilei_calc(30000,400);
-// 尝试用call抢
-lilei_calc.call(hmm,1,2);	// 失败
 
-// 绑定部分参数
-var lilei_calc10000 = calc.bind(lilei,10000);
-lilei_calc10000(1);	// 10001
 
 </script>
 </body>
