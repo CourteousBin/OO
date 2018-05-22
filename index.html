@@ -1827,10 +1827,302 @@
 				- 2.传多个参数的情况下 , 最后一个为函数体 , 前面都是形参
 					- var x = new Function(x,y,z,'函数体');
 
+		- eval()
+			- eval可以将字符串转换成 js 代码
+				- Case {
+
+					// 不在严格模式下 , 可以正常转换
+					var str = 'var a = 10;';
+
+					eval(str);
+
+					console.log(a);
+				}
+			- 兼容问题
+				- 转换Jsong格式 , 语法错误
+				- 直接转换eval(jsonStr)会出现错误 , 原因是将 {} 转义成代码块而不是对象
+				- 解决
+					- 1.在json字符串前面拼接 var o = 
+					- 2.把json格式的字符串用()括起来 , 不会讲{}转义成代码块 , 而是表达式
+					- Case {
+							// JSON
+								var jsonStr = '{"name":"Bin","age":"21"}';
+								// var jsonObj = eval(jsonStr);
+								// console.log(jsonObj);	// SyntaxError 语法错误
+
+								// 用eval来解析json字符串的时候,会将{}解析为代码块 , 而不是对象
+								// 解决办法
+									// 1.在json字符串前面拼接 var o = 
+								eval('var jsonObj ='+jsonStr);
+								console.log(jsonObj);		// 正常
+
+									// 2.把json格式的字符串用()括起来 , 不会讲{}转义成代码块 , 而是表达式
+										// 什么是表达式 , 就是运算
+								var jsonStr2 = '({"name":"Bin","age":"21"})';	
+								var o = eval(jsonStr2);
+								console.log(o);	
+					}
+			- 不建议使用eval
+
+		- 静态成员和实例化成员概念
+
+			- 成员就是属性和方法
+
+			- 静态成员就是指构造函数的属性和方法
+	
+			- 实例成员就是指实例的属性和方法	
+			
+			- Case {
+					function Person(){
+						this.name = 'Bin',		//实例成员
+						this.run = function(){	//实例成员
+							console.log('run');
+						}
+					}
+
+					// Person.prototype  ... 静态成员 , 通过构造函数访问的是静态成员
+						
+					var b = new Person();
+
+					// b.__proto__ 	实例化成员 , 因为是通过对象访问
+					// b.name 		实例化成员 , 因为是通过对象访问
+					
+					// 在jq中
+					$('#id').css 实例成员
+					$.each() 	 静态成员
+			}
+
+			- 总结:一般把工具方法,作为静态成员 , 把跟对象相关的方法,作为实例化成员
+
+		- arguments
+			- arguments.length
+				- 获取传参的长度
+			- arguments.callee
+				- 指向函数本身
+			- Case {
+					function test(x,y){
+						if(arguments.length !== 2);{
+							throw new Error('传参过多')
+						}
+						// 自己调用自己 称为递归
+						test();
+					}
+					test('1','2','3');
+
+					// 但是匿名函数如何调用自己呢?
+					(function(){
+						console.log('调用自己');
+						// 不能在严格模式下进行
+						arguments.callee();
+					})()
+			}
+
+		- instanceof 
+			- 判断一个对象是否构造函数出来的 (只对了一半)
+			- 判断该构造函数的原型对象是否存在于该对象的原型链上
+			- 语法: 对象 Instanceof 构造函数
+			- Case {
+					function Person(){
+						this.name = 'Bin',	
+						this.run = function(){
+							console.log('run');
+						}
+					}	
+					var b = new Person();
+					console.log(b instanceof Person);	//true
+					// 判断一个对象是否构造函数出来的 (只对了一半)
+					// 判断该构造函数的原型对象是否存在于该对象的原型链上
+					console.log(b instanceof Obeject);	//true
+			}
+
+		- function 原型链
+			- Funciont也可以当做一个构造函数
+			- 通过Function new 出来的函数也可以被当做是实例化的对象
+			- 那么Function 这个构造函数也有原型对象
+			- Function 的原型对象是一个空的函数
+			- Function 的原型对象是Object.__prototype__
+			- Case {
+					// Funciont也可以当做一个构造函数
+					// 通过Function new 出来的函数也可以被当做是实例化的对象
+					// 那么Function 这个构造函数也有原型对象
+					// Function 的原型对象是一个空的函数
+					// Function 的原型对象是Object.__prototype__
+					var fun = new Function();
+
+					// Function 的原型对象 为空函数
+					console.log(Function.prototype);
+
+					// Function 原型对象的 父级原型对象是 Object
+					console.log(Function.prototype.__proto__);
+
+					// test
+						// Object.prototype是否在Function的原型链上
+						// Function --> Function.protptype ----> Object.prototype
+						// true
+						console.log(Function instanceof Object);
+
+						// Function.protptype(后面的) 是否在 Function.prototype(前面的) 的原型链上
+						// true
+						console.log(Function instanceof Function);
+
+						// Function.prototype 是否在 Object.protptype , 对的 Object.prototype 一人之下万人之上
+						console.log(Object instanceof Function);
+	
+			}
+
+		- 块级作用域
+			- Javascript没有块级作用域
+			- Javascript中唯一能产生作用域就是 函数
+			- 词法作用域 
+				- 写好代码那一刻 , 变量的作用域就已经确定了
+				- 和词法作用域相对叫做动态作用域 , 但是Js是词法作用域 并不是 动态作用域
+			- 词法作用域规则
+				- 1.函数允许访问函数外的数据
+				- 2.整个代码结构中只有函数可以限定作用域
+				- 3.作用域规则首先使用提升规则
+				- 4.如果当前作用域有变量, 就不再向外寻找	
+				- Case {
+						// 写好代码那一刻 , 变量的作用域就已经确定了
+						var a = 123;
+						function f1(){
+							console.log(a);
+						}
+
+						function f2(){
+							var a = 435;
+							// 如果此时是在执行环境调用 a , 那么就是动态作用域 , 而他 直接调用最外层a
+							// 所以称为词法作用域
+							f1();	// 123
+						}
+						f1();	// 123
+						f2();	// 123	
+					}	
+			- Case {
+				for (var i = 0; i < 10; i++) {
+					var num = i;
+				}
+				// 如果有块级作用域 , 那么就 打印出undefined
+				console.log(i);
+				console.log(num);	
+
+			}
+
+		- 闭包
+			- 闭包原理:上级作用域无法访问下级作用域 , 而下级作用域可以访问上级作用域
+				- Case {
+						function f1(){
+							var num = 1;
+							function f2(){
+								console.log(num);
+							};
+							// 在局部作用域找f2 , 能够找到
+							f2();
+						}
+						// 如果直接在外部调用 , 就是在全局作用域找 f2 , 报错
+						// f2();	// error
+						f1();	
+				}
+			- 闭包要解决什么问题
+				 - 函数内部的函数中可以访问该函数变量
+				 - 但是我们需要在函数外部中访问函数内部变量 
+				 - Case {
+						// 1.说明每次function 返回的值都是新值
+						function foo(){
+							var obj = {
+								name:'Bin',
+								age:'21'
+							}
+							return obj;
+						}
+						var obj1 = foo();
+						var obj2 = foo();
+						// 因为new一个Obj 就是在内存中新创建一个对象 .. 实际上创建了两个对象
+						console.log(obj1 == obj2);	// false
+
+						// 2.说明每次function 返回的值都是新值
+							function foo(){
+								var num = 123;
+								return num;
+							}
+							var x = foo();
+							var num = x+x;
+							console.log(num);
+
+							var y = foo();
+							// 还是获得 123
+							console.log(y);
+
+						// 3.但是我们需要在函数外部中访问函数内部变量 	
+							function foo(){
+								var num = 234;
+								function inner(a){
+									num = a;
+									console.log(num);
+								}
+								//1. 如果我们要改变num , 可以在内部改变
+									// inner(1);
+									// inner(2);
+
+								// 2.如果要在外部改变里面的值 , 怎么办?
+								return inner;
+							}
+							// 3.返回的是 inner();
+							var innerFun = foo();
+							// 4.此时就可以在外部访问内部的函数并赋值
+							innerFun(10);
+				 }
+
+				- 闭包基本模式
+					- 在外部函数(foo)内部创建函数(inner) , 在这个函数内部中(inner)
+					  可以操作foo中的数据	(inner可以修改num)
+					- 将外部函数中的返回值 设置为 内部函数 , (返回 inner)
+					- 在外部调用 外部函数(foo) , 就可以接受到返回值 (inner)
+					- 使用这个内部函数,就可以在外部 将 外部函数里的变量(num) 进行修改
+					- Case {
+							function foo(){
+								var num = 234;
+								function inner(a){
+									num = a;
+									console.log(num);
+								}
+								//1. 如果我们要改变num , 可以在内部改变
+									// inner(1);
+									// inner(2);
+
+								// 2.如果要在外部改变里面的值 , 怎么办?
+								return inner;
+							}
+							// 3.返回的是 inner();
+							var innerFun = foo();
+							// 4.此时就可以在外部访问内部的函数并赋值
+							innerFun(10);
+					}
+
+
+
 */
+
 "use strict";
+function foo(){
+	var num = 123;
+	return function(a){
+		if(a !== undefined){
+			num = a;
+		}else {
+			return num;
+		}
+		
+		
+	}
+}
+// 设置值
+var func = foo();
+func(789);
+
+var x = func();
+console.log(x);
 
 
-</script>
+</script> 
 </body>
 </html>
