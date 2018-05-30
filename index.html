@@ -5,7 +5,9 @@
 	<title>Document</title>
 </head>
 <body>
-	
+
+
+
 <script>
 /*
 	Javascript 面向对象学习
@@ -2092,37 +2094,365 @@
 								// 2.如果要在外部改变里面的值 , 怎么办?
 								return inner;
 							}
-							// 3.返回的是 inner();
+							// 3.返回的是 inner(d);
 							var innerFun = foo();
 							// 4.此时就可以在外部访问内部的函数并赋值
 							innerFun(10);
 					}
 
+					- Case {
+							function foo(){
+								var num = 123;
+								return function(a){
+									// 如果传参数,设置值
+									if(a !== undefined){
+										num = a;
+										console.log(num);
+									}else {
+										// 不传参数 获取值
+										return num;
+									}
+								}
+							}
+							// 设置值
+								// fun是接受到了 返回的函数
+								var func = foo();
+								console.log(func);
+								// 执行这段函数
+								func(789);
+							// 获取值
+								// 接受返回来的函数
+								var funb = foo();
+								// 因为没值 , 接受返回的值
+								var result = funb();
+								console.log(result);
+					}
+
+					- Case {
+
+						// 1
+							function foo(){
+								var name = 'Bin';
+								var age = '21';
+								return function(){
+									return name;
+								}
+							}
+
+							var getNameFun = foo();
+							var result = getNameFun();
+							console.log(result);
+						
+						// 2
+							function foo(){
+								var name = 'Bin';
+								var age = '21';
+								return [
+									function(){
+										return name;
+									},
+									function(){
+										return age;
+									}
+								]
+							}
+
+							var getFun = foo();
+							var name = getFun[0]();
+							console.log(name);
+							var age = getFun[1]();
+							console.log(age);
+
+						// 3
+							function foo2(){
+								var name = 'Bin';
+								var age = '21';
+								return{
+									getName:function(){
+										return name;
+									},
+									getAge:function(){
+										return age;
+									}
+								}
+							}
+							// 返回对象 , 接受对象
+							var obj = foo2();
+							// 使用对象
+							var oName = obj.getName();
+							console.log(oName);							
+
+					}
+
+					- Case {
+
+						function foo(){
+							var name = 'Bin';
+							var age = 21;
+							return {
+								getName:function(){
+									return name;
+								},
+								setName:function(value){
+									name = value;
+									return name;
+								},
+								getAge:function(){
+									return age;
+								},
+								setAge:function(value){
+									age = value;
+									return age;
+								}
+							}
+						}
+
+						var obj = foo();
+						var setName = obj.setName('Bigbinbin');
+						console.log(setName);
+						var getName = obj.getName();
+						console.log(getName);
+		
+					}	
+				
+		- Js 执行顺序
+			- 线程
+				- 一个线程只能处理一件事情 , 多个线程就能同时处理多个事情
+				- Js 是单线程
+					- Case {
+						// Alert 时候程序不能继续执行 , 突出Js 是单线程
+						alert('卡主了,下面代码不能执行');
+						// 因为alert 不能继续执行
+						console.log('执行代码');
+
+
+						<!-- html在js(alert)后面 , 也不能正常显示 -->
+						<div>HTML</div>
+					}
+				- Js执行中 , 分了三个任务
+					- 1.渲染任务
+						- 执行html标签 css
+					- 2.Js代码执行任务
+						- 平时我们写的代码
+					- 3.事件处理任务	
+						- 回调
+						- setTimeout
+						- Case {
+
+								function foo(){
+									for(var i = 0;i<10;i++){
+										setTimeout(function(){
+											// 输出 10 个 10 , 为什么不输出 0 - 9?
+											// 因为这是异步代码 . 执行完for循环 再执行 setTimeout
+											console.log(i);
+										},0);
+									}
+								}
+								foo();
+								console.log('我比setTimeout先执行');
+								console.log('我也是 , 虽然 设计定时器0秒钟 , 可是他在事件处理 任务中');
+								console.log('而平时写的代码都在 执行任务环境 中');
+								console.log('先执行 任务环境中的js代码 , 再去执行 事件处理环境 中的回调');					
+						}
+
+			- Js 执行顺序
+				- 1.先把主任务执行完毕
+				- 2.再执行回调任务	
+				- Case {
+						for(var i = 0 ;i<10;i++){
+							function foo(j){
+								var value = j;
+								return function(){
+									console.log(value);
+								}
+							}
+						  
+							var f = foo(i);
+
+							// f(); 这样就是直接执行闭包了;
+							
+							setTimeout(f,0);
+
+							// setTimeout(f(),0);
+
+							// 这里为什么要用 f , 而不是 f() ?
+								// settimeout(function(){},time); 这个是最原始执行 定时器的格式
+								// 第一个是参数function(){} , 就是要放一段函数在这里被 setTimeOut 执行
+								// foo 返回的是一段函数 , 刚刚好 , 和 setTimeOut 格式一致 .
+
+							
+						}
+
+						// 还是先会执行 主程序代码 , 再执行 setTimeOut 回调
+						console.log('测试执行顺序');
+						console.log('测试执行顺序');
+						console.log('测试执行顺序');
+						console.log('测试执行顺序');
+				}
+
+			- 再遇闭包 
+				- Case {
+					window.onload = function(){
+						var divs = document.getElementsByTagName('div');
+
+						for(var i = 0;i<divs.length;i++){
+							var div = divs[i];
+
+							// 变成回调任务 , 等执行完主程序再执行回调 , 这样的话 i就变成10
+							// 永远都是 第10个
+							// div.onclick = function(){
+							// 	alert('我的第'+test+'个Div');
+							// }
+
+							function foo(i){
+								return function(){
+									alert('我的第'+(i+1)+'个div');
+								}
+							}
+
+							var f = foo(i);
+							div.onclick = f;
+						}
+					}
+
+					<div>我的第1个div</div>
+					<div>我的第2个div</div>
+					<div>我的第3个div</div>
+					<div>我的第4个div</div>
+					<div>我的第5个div</div>
+					<div>我的第6个div</div>
+					<div>我的第7个div</div>
+					<div>我的第8个div</div>
+					<div>我的第9个div</div>
+					<div>我的第10个div</div>	
+				}	
+		
+		- 沙箱
+			- 与外界隔绝的一个环境,外界无法修改该环境内任何信息,沙箱内的东西是单独的属于一个世界内
+				- 360沙箱模式
+					- 将软件和操作系统隔离 , 已到达安全的作用
+				- 苹果手机的app就是沙箱模式去运行
+					- 隔离app的空间 , 每个app独立运行
+		
+		- call apply
+			- 使用 call 与 apply 可以修改 this 指向谁
+			- apply 	
+				- 函数.apply(对象,[函数需要参数列表,是一个数组])
+				- 以后看到API文档 fun.apply(thisArg[,argsArray]) , 中括号代表可要可不要
+				- Case {
+					//1
+						var name = 'Bin';
+						function sayHello(){
+							// 默认环境下 , this指向全局
+							console.log(this.name);
+						}
+						sayHello();	//Bin
+
+						var obj = {
+							name:'BigBinBin'
+						}
+						// 改变了 this , 指向对象
+						sayHello.apply(obj);	// Bigbinbin
+
+					//2
+						var name = 'Bin';
+						// 带参数
+						function sayHello(a,b){
+							// 默认环境下 , this指向全局
+							console.log(this.name+'吃了'+(a*b)+'个馒头');
+						}
+						sayHello(1,2);
+
+						var obj = {
+							name:'BigBinBin'
+						}
+						// 利用apply带参数
+						sayHello.apply(obj,[1,5]);
+						// 利用call带参数
+						sayHello.call(obj,1,5);			
+
+					//3	
+						// 正常数组使用join
+						var arr = [1,2,3,4,6,8,9,5];
+						console.log(arr.join('-'));
+
+						function foo(){
+							// arguments 是一个伪数组
+							console.log(arguments);
+
+							// 伪数组没有 join 这个方法
+							// arguments.join('-');
+
+							// 借用 数组的 join 方法 , 因为apply 第二个参数要一个数组 
+							var str = Array.prototype.join.apply(arguments,['-']);
+							return str;
+						}
+						var str = foo('1','1','1','1','1');
+						console.log(str);		
+
+					// 4
+						function foo(){
+							// 指向全局
+							console.log(this);
+						}
+						foo();
+						var obj = {
+							name:'bin',
+							sayThis:function(){
+								console.log(this.name);
+							}
+						};
+						obj.sayThis();	// -> obj
+
+						// 替换this
+						foo.call(obj);	// -> obj	
+
+					// 5
+						var name = 'globalName';
+						function foo(){
+							// 指向全局
+							console.log(this);
+						}
+						foo();
+						var obj = {
+							name:'bin',
+							sayThis:function(){
+								console.log(this.name);
+							}
+						};
+						// null是window(全局) , 把null 替换到 obj.name
+						// 变成 window.name , 打印出 globalName
+						obj.sayThis.call(null);		
+
+					// 6
+					function test(){
+						console.log(this);
+					}
+					test.apply(1);	// -> Number
+					test.apply('1234');	// -> String
+					test.apply(true);	// -> Boolean
+					test.apply(undefined);	// -> window						
+				}
+			- 构造函数 
+				- Case {
+					
+				}	
 
 
 */
 
-"use strict";
-function foo(){
-	var num = 123;
-	return function(a){
-		if(a !== undefined){
-			num = a;
-		}else {
-			return num;
-		}
-		
-		
-	}
+// "use strict";
+function Person(){
+	this.name = 'bin',
+	this.age = 21;
 }
-// 设置值
-var func = foo();
-func(789);
-
-var x = func();
-console.log(x);
-
-
+function Student(){
+	// 借用父构造函数 , 把 Student 的this 替换了原来的 Person 的this
+	Person.apply(this);
+}
+var stu = new Student();
+console.log(stu);
 </script> 
+
 </body>
 </html>
