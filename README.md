@@ -1,5 +1,12 @@
 # Javascript 面向对象
 
+## 数据类型
+
+简单数据类型: `string` `number` `boolean` `undefined`
+
+复杂数据类型:`Object` `Array` `Date` `RegExp` `function` `string` `Number` `Boolean` `Math` `Null`
+
+
 ## 变量预解析
 
 js代码在执行之前 会在相应的执行环境中 预先把 一些东西解析到内存
@@ -61,9 +68,68 @@ function f2(){
 
 
 - 闭包原理:上级作用域无法访问下级作用域 , 而下级作用域可以访问上级作用域
+```Javascript
+function f1(){
+    var num = 1;
+    function f2(){
+        console.log(num);
+    };
+    // 在局部作用域找f2 , 能够找到
+    f2();
+}
+// 如果直接在外部调用 , 就是在全局作用域找 f2 , 报错
+// f2();    // error
+f1();   
+```
 - 闭包要解决什么问题
     + 函数内部的函数中可以访问该函数变量
     + 但是我们需要在函数外部中访问函数内部变量 
+```javascript
+// 1.说明每次function 返回的值都是新值
+function foo(){
+    var obj = {
+        name:'Bin',
+        age:'21'
+    }
+    return obj;
+}
+var obj1 = foo();
+var obj2 = foo();
+// 因为new一个Obj 就是在内存中新创建一个对象 .. 实际上创建了两个对象
+console.log(obj1 == obj2);  // false
+
+// 2.说明每次function 返回的值都是新值
+    function foo(){
+        var num = 123;
+        return num;
+    }
+    var x = foo();
+    var num = x+x;
+    console.log(num);
+
+    var y = foo();
+    // 还是获得 123
+    console.log(y);
+
+// 3.但是我们需要在函数外部中访问函数内部变量   
+    function foo(){
+        var num = 234;
+        function inner(a){
+            num = a;
+            console.log(num);
+        }
+        //1. 如果我们要改变num , 可以在内部改变
+            // inner(1);
+            // inner(2);
+
+        // 2.如果要在外部改变里面的值 , 怎么办?
+        return inner;
+    }
+    // 3.返回的是 inner();
+    var innerFun = foo();
+    // 4.此时就可以在外部访问内部的函数并赋值
+    innerFun(10);
+```
 
 - 闭包基本模式 
     + 在外部函数(foo)内部创建函数(inner) , 在这个函数内部中(inner)可以操作foo中的数据   (inner可以修改num)
@@ -74,6 +140,36 @@ function f2(){
 - 缺点
     + 消耗更多的内存 
 
+```javascript
+function f1(){
+
+　　　　var n=999;
+
+　　　　nAdd=function(){n+=1}
+
+　　　　function f2(){
+　　　　　　alert(n);
+　　　　}
+
+　　　　return f2;
+
+}
+
+var result=f1();
+
+result(); // 999
+
+nAdd();
+
+result(); // 1000
+```
+> 在这段代码中，result实际上就是闭包f2函数。它一共运行了两次，第一次的值是999，第二次的值是1000。这证明了，函数f1中的局部变量n一直保存在内存中，并没有在f1调用后被自动清除。
+
+> 为什么会这样呢？原因就在于f1是f2的父函数，而f2被赋给了一个全局变量，这导致f2始终在内存中，而f2的存在依赖于f1，因此f1也始终在内存中，不会在调用结束后，被垃圾回收机制（garbage collection）回收。
+
+> 这段代码中另一个值得注意的地方，就是"nAdd=function(){n+=1}"这一行，首先在nAdd前面没有使用var关键字，因此nAdd是一个全局变量，而不是局部变量。其次，nAdd的值是一个匿名函数（anonymous function），而这个匿名函数本身也是一个闭包，所以nAdd相当于是一个setter，可以在函数外部对函数内部的局部变量进行操作。
+
+>[阮一峰](http://www.ruanyifeng.com/blog/2009/08/learning_javascript_closures.html)
 ## 错误处理
 
 **错误一定会发生**
@@ -730,4 +826,840 @@ console.log(
     Object.prototype.toString.call(obj1) == "[object Array]", // false
     Object.prototype.toString.call(obj3) == "[object Array]", // false
 );
+```
+
+## 自定义继承
+
+仅设置两个对象之间的继承关系
+    
+- child.__proto__ = father;
+- 问题是 proto 也是内置的属性 , 内部属性可能被浏览器禁用
+- 解决:Object.setPrototypeOf(child,father)  设置child 继承 father
+```javascript
+var lilei = {
+    name:'李雷',
+    age:11,
+    intr:function(){
+        console.log(`我是${this.name},我是${this.age}岁`);
+    }
+}
+lilei.intr();
+// lilei.__proto__ -> Object.prototype
+var father = {
+    bal:1000000000,
+    car:'bwm'
+}
+// 自定义继承
+Object.setPrototypeOf(lilei,father);
+console.log(lilei);
+```
+
+批量设置子对象继承关系
+
+- 只要修改构造函数的prototype对象即可
+
+```javascript
+var father = {
+    bal:100000000,
+    car:'bwm'
+}
+function student(name,age){
+    this.name = name;
+    this.age = age;
+}
+// 先修改继承
+student.prototype = father;
+// 再添加方法
+student.prototype.intr = function(){
+    console.log(`我是${this.name},我${this.age}岁了`);
+}
+// 最后实例化对象
+var lilei = new student('李雷',11);
+var hmm = new student('hmm',12);
+console.log(lilei);
+```
+
+**两种类型间的继承**
+
+*如果发现多个类型有相同的属性和相同的方法时,纪要抽象出一个父类型*
+
+- 定义父类型
+    + 构造函数:集中定义相同的属性结构
+    + 原型对象:集中定义相同的方法
+- 让子类型原型对象基础父类型原型对象
+    + 保证子对象可调用父类型原型中的方法
+- 让子类型构造函数中借用父类型构造函数
+    + 请父类型构造函数 构建 共有的属性 
+    + 问题:直接调用父类型构造函数 , 那么 this 指向谁
+    + this 默认 指向 windwo
+    + 解决   
+        * call(); 只要this不是想要的,就用call随便替换
+        * 父类型构造.call(this,参数) 替换this
+```javascript
+// 父类型
+function Flyer(name,speed){
+    this.name = name;
+    this.speed = speed;
+}
+// 父类型原型对象方法
+Flyer.prototype.fly = function(){
+    console.log(`${this.name}以时速${this.speed}飞行`);
+}
+// 子类型
+function plane(name,speed,score){
+    // 问题出在 this 上
+    // this 获得的是 . 前面的对象
+    // 没有 . 那么会自动获得创建的新对象
+    // 那么没有用. 调用 也没有用 new 调用 , 那么 this指向window
+    // 问题:直接调用父类型构造函数 , 那么 this 默认 指向 windwo
+    // 解决 call(); 只要this不是想要的,就用call随便替换
+    Flyer.call(this,name,speed);    // 借用父类型构造
+    // 自己理解:
+        // 构造函数在没有 New 或者没有 "." 的情况下 , This是指向window
+        // 当你new一个构造函数时 , 创建一个新的对象,  this是指向新对象
+        // 在plane 调用Flyer的时候 并没有 New 或者 "." , 所以指向window
+        // 用call(),把新对象(plane)的this 替换 Flyer 里面的 this . 就等于指向了新对象
+    this.score = score;
+}
+plane.prototype.getScore = function(){
+    console.log(`${this.name}以时速${this.speed}飞行,击落我获得${this.score}分`);
+}
+// 子类型继承父类型 原型对象
+Object.setPrototypeOf(plane.prototype,Flyer.prototype);
+var j10 = new plane('j10',100,50);
+console.log(j10);   
+j10.getScore();
+j10.fly();
+```
+
+图解:
+![两种类型之间的继承](https://raw.githubusercontent.com/CourteousBin/OO/master/images/7%E4%B8%A4%E7%A7%8D%E7%B1%BB%E5%9E%8B%E9%97%B4%E7%9A%84%E7%BB%A7%E6%89%BF.png)
+
+## this
+
+关键字 this ,引用正在调用函数的对象的关键词
+
+自己理解 : 
+
+> - 自动引用正在调用当前的 . 前的对象
+> - 不加 this的变量,默认在作用域链中找,不会去对象中找
+> - 只要对象的方法想使用自己的属性时 , 必须加this
+> - obj.fun() , this 指向obj
+> - new Fun() , this 指向正在创建的新对象
+> - fun() 和 匿名函数自调, this 指向window
+> - 当一个构造函数 , 没有 new 没有 . 那么 this指向window
+> - 如果this 不是你想要的时候 , fun.call(this,参数) 替换
+
+new Object() , new 干了几件事?
+
+- 创建空对象
+- 让新对象继承构造函数的原型对象 设置新对象 __proto__ 指向构造函数prototype
+- 调用构造函数
+- 返回新对象的地址
+
+### call() 与 apply()
+
+- apply(this,arguments)
+- apply 和 call 都是强行借用一个本来无法调用的函数 , 并临时替换函数中的this为指定对象
+- call 必须是单独传参数 , 逗号分隔
+- apply 可自动打散数组类型参数
+
+默认环境下 , this指向全局
+
+```javascript
+var name = 'Bin';
+function sayHello(){
+    // 默认环境下 , this指向全局
+    console.log(this.name);
+}
+sayHello(); //Bin
+
+var obj = {
+    name:'BigBinBin'
+}
+// 改变了 this , 指向对象
+sayHello.apply(obj);    // Bigbinbin
+```
+
+修改this , 指向obj
+```javascript
+var name = 'Bin';
+// 带参数
+function sayHello(a,b){
+    // 默认环境下 , this指向全局
+    console.log(this.name+'吃了'+(a*b)+'个馒头');
+}
+sayHello(1,2);
+
+var obj = {
+    name:'BigBinBin'
+}
+// 利用apply带参数
+sayHello.apply(obj,[1,5]);
+// 利用call带参数
+sayHello.call(obj,1,5);         
+```
+
+apply 与 arguments
+```javascript
+// 正常数组使用join
+var arr = [1,2,3,4,6,8,9,5];
+console.log(arr.join('-'));
+
+function foo(){
+    // arguments 是一个伪数组
+    console.log(arguments);
+
+    // 伪数组没有 join 这个方法
+    // arguments.join('-');
+
+    // 借用 数组的 join 方法 , 因为apply 第二个参数要一个数组 
+    var str = Array.prototype.join.apply(arguments,['-']);
+    return str;
+}
+var str = foo('1','1','1','1','1');
+console.log(str);              
+```
+对象this 替换 全局 this
+```javascript
+function foo(){
+    // 指向全局
+    console.log(this);
+}
+foo();
+var obj = {
+    name:'bin',
+    sayThis:function(){
+        console.log(this.name);
+    }
+};
+obj.sayThis();  // -> obj
+
+// 替换this , 同对象的this 替换 全局 this
+foo.call(obj);  // -> obj   
+```
+
+全局this 替换 对象this
+```javascript
+var name = 'globalName';
+function foo(){
+    // 指向全局
+    console.log(this);
+}
+foo();
+var obj = {
+    name:'bin',
+    sayThis:function(){
+        console.log(this.name);
+    }
+};
+// null是window(全局) , 把null 替换到 obj.name
+// 变成 window.name , 打印出 globalName
+obj.sayThis.call(null);     
+```
+
+替换构造函数 this
+
+```javascript
+function Person(){
+    this.name = 'bin',
+    this.age = 21;
+}
+function Student(){
+    // 借用父构造函数 , 把 Student 的this 替换了原来的 Person 的this
+    // 继承了person 的属性
+    Person.apply(this);
+}
+var stu = new Student();
+console.log(stu); 
+```
+
+两种类型继承 apply
+```javascript
+function Flyer(name,speed){
+    this.name = name;
+    this.speed = speed;
+}
+
+Flyer.prototype.fly = function(){
+    console.log(`${this.name}以时速${this.speed}飞行`);
+}
+
+function Bee(name,speed,award){
+    // apply 和 call 都是强行借用一个本来无法调用的函数 , 并临时替换函数中的this为指定对象
+    // call 必须是单独传参数 , 逗号分隔
+    // Flyer.call(this,name,speed);
+    // apply 可自动打散数组类型参数
+    Flyer.apply(this,arguments);
+    this.award = award
+}
+Bee.prototype.getAward = function(){
+    console.log(`${this.name}以时速${this.speed}飞行,击落获得${this.award}`);
+}
+Object.setPrototypeOf(Bee.prototype,Flyer.prototype);
+
+var be1 = new Bee('be1',50,'一条命');              
+be1.fly();
+be1.getAward();
+```
+
+## ES5
+
+### 保护对象
+
+- Js对象中的属性,随时可以被修改,删除,替换,添加.
+- 命名属性 : 可用.访问到的属性
+- 数据属性:直接存储属性值的属性
+- 每个属性都有四大特征
+    + value:实际存储属性值
+    + writable:是否可以修改,默认为true
+    + enumerable:是否可以被for in 遍历到 , 无法控制 . 访问
+    + configurable:是否可修改其他特性 控制 writable , enumerable 以及 是否可删除属性
+        * 如果关闭了configurable , 属性将不可删除
+
+**获取四大特性**
+
+var attrs = Object.getOwnPropertyDescriptor(对象,属性名)
+
+**设置四大特效**
+
+Object.defineProperty(bin,'id',{
+
+    writable:false, // 设置只读
+
+    configurable:false // 双保险,禁止再修改 , 不可逆 , 还禁止删除
+
+})
+
+```javascript
+"use strict";
+var bin = {
+    id:1001,
+    name:'Bin',
+    salary:10000
+};
+// 获得四大特性
+var attrs = Object.getOwnPropertyDescriptor(bin,'id');
+console.log(attrs);
+// 修改Id属性为只读 , define定义 , property属性
+Object.defineProperty(bin,'id',{
+    writable:false, // 设置只读
+    configurable:false // 双保险,禁止再修改 , 不可逆 , 还禁止删除
+})
+// 禁止遍历 , 但是不能控制 . 访问
+Object.defineProperty(bin,'salary',{
+    enumerable:false,
+    configurable:false
+})
+
+// 设置为禁止修改 , 修改时候并不报错 , 除非开严格模式
+// bin.id++;
+// 删除属性
+// delete bin.id;   // 设置了 config:flase 报错
+console.log(bin);
+```
+
+**同时修改多个属性值的四大特性**
+
+Object.defineProperties(obj,{
+
+    属性名:{特性:值},
+
+    属性名:{特性:值}
+
+})
+
+如果要修改的属性不存在会报错吗?
+
+- 会自动创建新的属性
+- 通过 Object.defineProperty 自动创建的属性 , 四大特性都默认为 false
+- 通过 对象直接添加的新属性, 四大特性为 true
+
+```javascript
+var bin = {
+    id:1001,
+    name:'Bin'
+};
+// 同时修改多个属性的四大特性
+Object.defineProperties(bin,{
+    id:{writable:false,configurable:false},
+    name:{configurable:false},
+    // salary:{enumerable:false,configurable:false}
+    // 通过这个方法添加新属性 , 四大特性默认为 False , 除非手动打开
+    salary:{value:1000,writable:true,configurable:true}
+})
+// delete bin.name;
+// bin.id++;
+var attrs = Object.getOwnPropertyDescriptor(bin,'salary');
+// 通过这个方法添加新属性 , 四大特性默认为 False
+console.log(attrs);
+console.log(bin);
+```
+
+**自定义保护**
+
+- 数据属性四大属性只能做到基本保护 , 不能做到自定义保护
+- 访问器属性:不直接存储属性,专门对其他属性提供保护的特殊属性
+
+```javascript
+var bin = {
+    id:1001,
+    name:'Bin'
+};
+(function(){
+    // 实际存储数据的变量
+    var _age;
+    // 保护器属性 age 保护的变量是 _age;
+    // 为什么要闭包?
+        // 因为外部无法访问 _age , 能访问到的只有 get,set
+    Object.defineProperty(bin,'age',{
+
+        get:function(){
+            return _age;
+        },
+
+        set:function(val){
+            console.log(`值${val}接受检查`);
+            if(val>=18&&val<=65){
+                _age = val;
+            }else {
+                throw new RangeError("年龄必须介于18~65之间");
+            }
+            
+        }
+    })
+})();
+bin.age=17; 
+bin._age=0; 
+console.log(bin.age);   
+console.log(bin._age);              
+
+// 问题受保护的数据不能保存在普通的数据属性中,因为数据属性可以随便被修改,访问
+// 解决: 闭包
+```
+
+在构造函数中使用保护
+```javascript
+// 在构造函数中使用四大特性保护
+function Emp(id,name,salary,age){
+
+this.id = id;
+this.name = name;
+this.salary = salary;
+var _age;   //实际存储数据的变量
+// id只读
+// Name禁止删除
+// salary禁止遍历,删除
+// age要在18-65之间
+// this是值正在创建新对象
+Object.defineProperties(this,{
+    id:{writable:false,configurable:false},
+    name:{configurable:false},
+    salary:{
+        enumerable:false,configurable:false
+    },
+    // age是访问器属性保护_age
+    age:{
+        get(){
+            return _age;
+        },
+        set(val){
+            if(val>=18 && val<=64){
+                _age = val;
+            }else {
+                throw new Error('年龄少于18或者大于65');
+            }
+        },
+        // age是后天添加的属性全部属性都是false
+        enumerable:true
+    }
+})
+
+this.age = age;
+}
+// 在实例化对象的时候自带数据保护
+var lilei = new Emp(2,'lilei',1000,10);    
+```
+
+### 保护整个对象
+
+三个级别
+
+- 防拓展:禁止添加新属性
+    + Object.preventExtensions(obj);
+- 密封:及防扩展又禁止删除任何属性
+    + Object.seal(obj)  
+```javascript
+function Emp(id,name,salary,age){
+    this.id = id;
+    this.name = name;
+    this.salary = salary;
+    var _age;   //实际存储数据的变量
+    Object.defineProperties(this,{
+        // 使用了密封 , configurable可以省略
+        id:{writable:false},
+        salary:{
+            enumerable:false
+        },
+        // age是访问器属性保护_age
+        age:{
+            get(){
+                return _age;
+            },
+            set(val){
+                if(val>=18 && val<=64){
+                    _age = val;
+                }else {
+                    throw new Error('年龄少于18或者大于65');
+                }
+            },
+            // age是后天添加的属性全部属性都是false
+            enumerable:true
+        }
+    })
+
+    this.age = age;
+
+    // 在属性定义完以后,防扩展
+        // 防止扩展新属性
+    // Object.preventExtensions(this);
+    // 密封:及防扩展又禁止删除任何属性
+    Object.seal(this); 
+ }
+ // 在实例化对象的时候自带数据保护
+ var lilei = new Emp(2,'lilei',1000,20);
+
+ // Cannot add property abc, object is not extensible
+ // lilei.abc = 'abc';  
+
+ // lelie is not defined
+ // delete lelie.age;
+```
+
+- 冻结
+    + 防止扩展 禁止删除 同时禁止修改一切属性值     
+    + Object.freeze(this);
+```javascript
+var config= {
+    host:'localhost',
+    port:'3302',
+    db:'test',
+    uname:'root',
+    upwd:'abc'
+}
+Object.freeze(config);
+```
+
+兼容 IE
+
+经典继承写法 ES5
+
+```javascript
+var o = {
+    name:'Bin',
+    age:'21'
+};
+// 返回一个新对象 , 继承来自参数中的obj
+var obj = Object.create(o);
+console.log(obj);
+
+```
+
+IE 8 没有这种写法 , 兼容 IE8 
+
+```javascript
+// 兼容IE8
+// 为什么有些方法是在原型链 , 有些方法是在构造函数里面?
+// 只有某一类才能使用的方法就定义在 这个类型的 原型对象中
+    // arr.indexOf();
+    // date.indexOf();
+    // reg.indexOf();
+    // 只要一个方法,只希望本类型的子对象才能调用,就保存在原型对象中
+// 不限制类型的方法 , 都写在构造函数中 
+// 重要希望所有对象都可以使用的方法
+    // Array.isArray(obj);
+    // Object.create(father);
+if(typeof Object.create!=="function"){
+Object.create = function(father,props){
+    // 创建新对象
+    function F(){};
+    F.protptype = father;
+    var onj = new F();
+    // F函数的作用就是 为了和 father 建立关系 , 然后没用就销毁
+    F=null;
+    // 继承father
+    // Object.setPrototypeOf(obj,father); 
+    // 如果有第二个参数,就将第二个参数中的属性舔到新对象中
+    if(props){
+        // 四大特性是 es5 特有的
+        // Object.defineProperties(obj,props);
+        // 遍历Props中的每个属性 , 为Obj添加新属性
+        for(var key in props){
+            obj[key] = props[key.value];
+        }
+    }
+    // 返回新对象
+
+
+}
+}
+
+var father = {
+bal:100000000,
+car:'bmw'
+}
+var hmm = Object.create(father,{
+// 等于直接调用了 defineProperties
+phone:{
+    value:'iphoneX',
+    writable:true,
+    enumerable:true,
+    configurable:true
+},
+bar:{
+    value:'C',
+    writable:true,
+    enumerable:true,
+    configurable:true
+}
+})
+console.log(hmm);
+```
+
+## bind()
+
+- 基于一个现有函数,创建一个新的函数,永久绑定this
+- 希望一个对象永久绑定在一个this上
+- 会造成函数中的this将永久无法被其他对象替换
+- 除了永久绑定this ,还可以绑定部分参数 
+```javascript
+function calc(base,bonus){
+    console.log(this.name + '的总工资是'+(base+bonus));
+}
+var lilei = {
+    name:'liLei'
+};
+var hmm = {
+    name:'韩梅梅'
+};
+// 李雷临时借用calc计算器
+    // call有替换this的功能
+calc.call(lilei,1000,400);
+calc.call(hmm,200,400);
+// liLei买了一个和calc一样的计算器,新计算器永久属于李雷
+var lilei_calc = calc.bind(lilei);
+lilei_calc(10000,400);
+lilei_calc(20000,400);
+lilei_calc(30000,400);
+// 尝试用call抢
+lilei_calc.call(hmm,1,2);   // 失败
+
+// 绑定部分参数
+var lilei_calc10000 = calc.bind(lilei,10000);
+lilei_calc10000(1); // 10001
+```
+
+**call apply bind区别**
+
+- call 和 apply 临时借用一个函数,并把this 替换成指定对象
+- call 和 aooly 立刻执行
+- bind 基于现有函数,创建一个新的函数,并永久绑定this为指定对象
+- bind只创建函数 , 并不执行;
+- 如果立刻执行函数使用 call apply
+- 如果只创建一个新的函数就用Bind 
+
+## 其他
+
+**语言精粹提出继承的方法**
+
+```javascript
+// 语言精粹提出的继承方式
+function Jc(obj){
+    var o = {};
+    // o的原型对象继承obj , obj同时也继承了 Object
+    o.__proto__ = obj;
+    return o;
+}
+var o = Jc({name:'Bin'});
+console.log(o);
+```
+
+**new Function() **
+
+- Function 这个构造函数 可以用来创建函数对象
+- 语法
+    + 一个参数都不传的情况 创建一个空函数
+        * var x = new Function();
+    + 只传一个参数的情况 这个参数是函数体
+        * var x = new Function('函数体');
+    + 传多个参数的情况下 , 最后一个为函数体 , 前面都是形参
+        * var x = new Function(x,y,z,'函数体');
+
+**eval()**
+
+-  eval可以将字符串转换成 js 代码
+```javascript
+// 不在严格模式下 , 可以正常转换
+var str = 'var a = 10;';
+
+eval(str);
+
+console.log(a);
+```
+
+- 转换Json
+    + 直接转换eval(jsonStr)会出现错误 , 原因是将 {} 转义成代码块而不是对象
+- 解决
+    + 在json字符串前面拼接 var o = 
+    + 把json格式的字符串用()括起来 , 不会讲{}转义成代码块 , 而是表达式
+    ```javascript
+    // JSON
+    var jsonStr = '{"name":"Bin","age":"21"}';
+    // var jsonObj = eval(jsonStr);
+    // console.log(jsonObj);    // SyntaxError 语法错误
+
+    // 用eval来解析json字符串的时候,会将{}解析为代码块 , 而不是对象
+    // 解决办法
+        // 1.在json字符串前面拼接 var o = 
+    eval('var jsonObj ='+jsonStr);
+    console.log(jsonObj);       // 正常
+
+        // 2.把json格式的字符串用()括起来 , 不会讲{}转义成代码块 , 而是表达式
+            // 什么是表达式 , 就是运算
+    var jsonStr2 = '({"name":"Bin","age":"21"})';   
+    var o = eval(jsonStr2);
+    console.log(o); 
+    ```
+
+**块级作用域**
+
+- Javascript没有块级作用域
+- Javascript中唯一能产生作用域就是 函数
+- 词法作用域 
+    + 写好代码那一刻 , 变量的作用域就已经确定了
+    + 和词法作用域相对叫做动态作用域 , 但是Js是词法作用域 并不是 动态作用域
+- 词法作用域规则
+    + 函数允许访问函数外的数据
+    + 整个代码结构中只有函数可以限定作用域
+    + 作用域规则首先使用提升规则
+    + 如果当前作用域有变量, 就不再向外寻找   
+```javascript
+    // 写好代码那一刻 , 变量的作用域就已经确定了
+    var a = 123;
+    function f1(){
+        console.log(a);
+    }
+
+    function f2(){
+        var a = 435;
+        // 如果此时是在执行环境调用 a , 那么就是动态作用域 , 而他 直接调用最外层a
+        // 所以称为词法作用域
+        f1();   // 123
+    }
+    f1();   // 123
+    f2();   // 123  
+```
+
+**js执行顺序**
+
+- 线程
+    + 一个线程只能处理一件事情 , 多个线程就能同时处理多个事情
+    + Js 是单线程
+```javascript
+// Alert 时候程序不能继续执行 , 突出Js 是单线程
+alert('卡主了,下面代码不能执行');
+// 因为alert 不能继续执行
+console.log('执行代码');
+```
+
+js执行流程
+
+- 渲染任务
+    + 执行html标签 css
+- Js代码执行任务
+    + 平时我们写的代码
+- 事件处理任务
+    + 回调
+
+**回调往往是执行完主程序 再执行回调函数**
+
+`setTimeout` 异步函数
+
+```javascript
+function foo(){
+    for(var i = 0;i<10;i++){
+        setTimeout(function(){
+            // 输出 10 个 10 , 为什么不输出 0 - 9?
+            // 因为这是异步代码 . 执行完for循环 再执行 setTimeout
+            console.log(i);
+        },0);
+    }
+}
+foo();
+
+console.log('我比setTimeout先执行');
+console.log('我也是 , 虽然 设计定时器0秒钟 , 可是他在事件处理 任务中');
+console.log('而平时写的代码都在 执行任务环境 中');
+console.log('先执行 任务环境中的js代码 , 再去执行 事件处理环境 中的回调');   
+```
+
+```javascript
+for(var i = 0 ;i<10;i++){
+    function foo(j){
+        var value = j;
+        return function(){
+            console.log(value);
+        }
+    }
+  
+    var f = foo(i);
+
+    // f(); 这样就是直接执行闭包了;
+    
+    setTimeout(f,0);
+
+    // setTimeout(f(),0);
+
+    // 这里为什么要用 f , 而不是 f() ?
+        // settimeout(function(){},time); 这个是最原始执行 定时器的格式
+        // 第一个是参数function(){} , 就是要放一段函数在这里被 setTimeOut 执行
+        // foo 返回的是一段函数 , 刚刚好 , 和 setTimeOut 格式一致 .
+
+    
+}
+
+// 还是先会执行 主程序代码 , 再执行 setTimeOut 回调
+console.log('测试执行顺序');
+console.log('测试执行顺序');
+console.log('测试执行顺序');
+console.log('测试执行顺序');
+```
+
+```javascript
+// 假设有10个div
+// <div>我的第1个div</div>
+// ...
+
+window.onload = function(){
+var divs = document.getElementsByTagName('div');
+
+for(var i = 0;i<divs.length;i++){
+    var div = divs[i];
+
+    // 变成回调任务 , 等执行完主程序再执行回调 , 这样的话 i就变成10
+    // 永远都是 第10个
+    // div.onclick = function(){
+    //  alert('我的第'+test+'个Div');
+    // }
+
+    function foo(i){
+        return function(){
+            alert('我的第'+(i+1)+'个div');
+        }
+    }
+
+    var f = foo(i);
+    div.onclick = f;
+}
+}
 ```

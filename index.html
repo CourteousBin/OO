@@ -2448,6 +2448,7 @@ function Person(){
 }
 function Student(){
 	// 借用父构造函数 , 把 Student 的this 替换了原来的 Person 的this
+	// 继承了person 的属性
 	Person.apply(this);
 }
 var stu = new Student();
