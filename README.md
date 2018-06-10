@@ -1602,6 +1602,8 @@ console.log('我也是 , 虽然 设计定时器0秒钟 , 可是他在事件处�
 console.log('而平时写的代码都在 执行任务环境 中');
 console.log('先执行 任务环境中的js代码 , 再去执行 事件处理环境 中的回调');   
 ```
+图解:
+![异步代码最后执行](https://raw.githubusercontent.com/CourteousBin/OO/master/images/13JS%E6%89%A7%E8%A1%8C%E9%A1%BA%E5%BA%8F.png)
 
 ```javascript
 for(var i = 0 ;i<10;i++){
@@ -1634,6 +1636,9 @@ console.log('测试执行顺序');
 console.log('测试执行顺序');
 console.log('测试执行顺序');
 ```
+
+图解闭包 + setTimeout
+![图解闭包+ setTimeout](https://raw.githubusercontent.com/CourteousBin/OO/master/images/14%E9%97%AD%E5%8C%85%2BsetTimeout.png)
 
 ```javascript
 // 假设有10个div
