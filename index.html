@@ -7,7 +7,6 @@
 <body>
 
 
-
 <script>
 /*
 	Javascript 面向对象学习
@@ -2442,18 +2441,28 @@
 */
 
 // "use strict";
-function Person(){
-	this.name = 'bin',
-	this.age = 21;
-}
-function Student(){
-	// 借用父构造函数 , 把 Student 的this 替换了原来的 Person 的this
-	// 继承了person 的属性
-	Person.apply(this);
-}
-var stu = new Student();
-console.log(stu);
+// function Person(){
+// 	this.name = 'bin',
+// 	this.age = 21;
+// }
+// function Student(){
+// 	// 借用父构造函数 , 把 Student 的this 替换了原来的 Person 的this
+// 	// 继承了person 的属性
+// 	Person.apply(this);
+// }
+// var stu = new Student();
+// console.log(stu);
 </script> 
+
+
+<script>
+	var message = 'hello';
+
+	var worker = new Worker('worker.js');
+
+	// 发送给 worker
+	worker.postMessage(message);
+</script>
 
 </body>
 </html>

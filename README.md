@@ -1668,3 +1668,155 @@ for(var i = 0;i<divs.length;i++){
 }
 }
 ```
+
+# HTML5 
+
+## Web Worker
+
+Chrome浏览器的线程模型是怎样的？
+
+- 程序：计算机可以执行的代码，存在于磁盘中——静止的
+- 进程：把程序调入到内存中，等待被CPU执行——活动的
+- 线程：是CPU执行进程代码的基本单位——生产任务
+
+面试题：进程和线程间的关系？
+
+- 进程是操作系统分配内存的基本单位。
+- 线程处于进程内部，是CPU执行代码的基本单位。
+- 一个进程中至少有一个线程，也可以有多个。
+- 多个线程间并发执行——宏观上看是“同时”执行，微观上看是“轮流”执行。
+
+Chrome中的线程模型：
+
+1. Chrome中发起HTTP请求最多可以使用6个并发的线程；
+2. Chrome中负责向页面中执行绘制任务(执行HTML/CSS/JS/事件处理等代码)的只有1个线程——UI主线程。
+
+碰到如下的代码，就有问题了：
+
+```html
+<button onclick="console.log(111)">1</button>
+<script src="耗时.js"></script>
+<button onclick="console.log(222)">2</button>
+```
+
+根本解决之道：
+
+创建一个新的线程，去执行耗时的JS任务——与UI主线程并发执行。new Thread('x.js') —— 其它语言中的类似代码。
+
+HTML5提供了一种类似创建新线程的机制：
+
+new Worker('x.js');   //工人线程，与UI主线程并发执行
+
+注意：Worker线程天然缺陷！！
+
+浏览器禁止Worker线程操作任何的BOM和DOM对象！！！——浏览器只允许UI主线程进行页面内容的渲染！——不能使用Worker加载类似jquery.js文件！！ 
+项目中，必需用到Worker的场景不多，比如有非常复杂耗时的且与DOM无关的运算时。
+
+UI线程与worker通信
+
+UI线程发送消息给 Worker 线程
+
+UI线程:
+
+```javascript
+var message = 'hello';
+
+var worker = new Worker('./x.js');
+
+// 发送给 worker
+worker.postMessage(message);
+```
+
+worker:
+
+```javascript
+onmessage = function(message){
+    console.log(message);
+}
+```
+
+UI线程接受 Worker 线程消息
+
+Worker:
+
+```javascript
+
+postMessage('worker');
+
+```
+
+UI主线程
+
+```javascript
+
+var worker = new Worker('./worker.js');
+
+// 接受 worker 消息 
+worker.onmessage = function(message){
+    console.log(message)
+}
+
+```
+
+## WebSocket
+
+HTTP协议：是基于“请求-响应”模型的协议，客户端发起一个请求，服务器就要返回一个响应，请求消息和响应消息是一一对应的！没有请求就没有响应！
+
+在一些特别的应用场景下（如实时走势图，在线聊天室），只能使用“定时器+AJAX”不停的向服务器发起请求以获得最新的数据——“心跳请求”，解决方案并不完美：心跳过快服务器压力过大，过慢导致数据实时性差。
+
+**WebSocket协议：**
+
+是基于“广播-收听”模型的协议，只要客户端连接到服务器上，就不再断开，一方可以发送多条消息，对方只接收而不发送，可以解决上述应用中的问题。
+
+这个协议本身的问题：客户端与服务器是“永久连接”，导致服务器可以同时连接的客户端数是有限的！
+
+基于WebSocket协议的应用必需两套程序：
+
+(1)服务器端程序：  
+
+可使用PHP、Java、Node.js等语言编写
+
+注意：PHP编写的WebSocket服务器独立运行的，无需依赖Apache！  
+
+
+(2)客户端程序：
+
+使用HTML5提供的WebSocket对象创建WS客户端：
+
+```html
+<body>
+    <button id="btConnect">连接到服务器</button>
+    <button id="btSendReceive">发送消息</button>
+    <button id="btClose">关闭服务器</button>
+    
+    <script>
+        
+        var wsClient = null;
+
+        btConnect.onclick = function(){
+            wsClient = new WebSocket('ws://127.0.0.1:9999');
+            wsClient.onopen = function(){
+                console.log('客户端已经练到服务器');
+
+            }
+        }
+
+        btSendReceive.onclick = function(){
+            wsClient.send('hello'); // 向服务器发送消息
+            wsClient.onmessage = function(e){
+                console.log('客户端接收到服务器消息');
+                console.log(e.data)
+            }
+        }
+
+        btClose.onclcik = function(){
+            wsClient.close();
+            wsClient.onclose = function(){
+                console.log('ws已经断开连接')
+            }
+        }
+
+    </script>
+
+</body>
+```
